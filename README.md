@@ -1,5 +1,8 @@
 # Auxia · 个人站
 
+a new programmer's trying, producted by agent ｜ 线上：<https://auxiaweb.pages.dev>
+（仓库简介另见 [`docs/ABOUT.md`](docs/ABOUT.md)）
+
 二次元日系美学，干净、明亮、有空气感。单页滚动主页 + 独立展墙页 + 4 个项目占位页。
 
 底座是 **纯静态 Cloudflare Pages**：零后端、零运行时依赖。
