@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-bucket="aqua">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>展墙 · 全部展品 — Auxia</title>
+<meta name="description" content="Auxia 的五面展墙全部展品：摄影作品展示、动漫、音乐、书籍、游戏。摄影为作者自摄，其余为清单式索引。">
+<meta name="theme-color" content="#f4fbfa">
+<link rel="canonical" href="{{ORIGIN}}/gallery/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Auxia">
+<meta property="og:title" content="展墙 · 全部展品 — Auxia">
+<meta property="og:description" content="摄影 / 动漫 / 音乐 / 书籍 / 游戏">
+<meta property="og:url" content="{{ORIGIN}}/gallery/">
+<meta property="og:image" content="{{ORIGIN}}/assets/img/icons/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="../assets/img/icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../assets/img/icons/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/img/icons/apple-touch-icon.png">
+<link rel="manifest" href="../manifest.webmanifest">
+
+<!-- font-preload -->
+<link rel="preload" href="../assets/fonts/body-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/logo-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/smiley/smiley-25.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/smiley/smiley-16.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/smiley/smiley-06.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/smiley/smiley-01.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/smiley/smiley-04.woff2" as="font" type="font/woff2" crossorigin>
+<!-- font-preload -->
+
+<link rel="stylesheet" href="../assets/css/variables.css">
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+
+<body data-bucket="aqua" data-root="../">
+<a class="skip" href="#main">跳到主内容</a>
+
+<div id="bg" aria-hidden="true">
+  <img class="bg-img" alt="">
+  <div class="veil"></div>
+  <div class="credit" hidden></div>
+</div>
+<div id="danmaku" aria-hidden="true"></div>
+<div id="particles" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="../"><span class="dot"></span>auxia</a>
+    <div class="nav-links">
+      <a href="../#intro">自我介绍</a>
+      <a href="../#walls">展墙橱窗</a>
+      <a href="../#projects">项目</a>
+      <a href="../#contact">联系方式</a>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+  <header class="page-head">
+    <div class="wrap">
+      <a class="crumb" href="../">← 回到首页</a>
+      <h1>展墙 · 全部展品</h1>
+      <p class="page-sub">共 <strong id="gallery-total">67</strong> 件</p>
+    </div>
+  </header>
+
+  <div class="wrap" id="walls">
+    <noscript><p>展品列表需要 JavaScript 渲染。展墙数据源位于 <code>data/gallery.json</code>。</p></noscript>
+  </div>
+
+  <footer class="foot">
+    <div class="wrap">
+      <details class="legal">
+        <summary>素材来源与版权说明</summary>
+        <p>各页背景来自站主自备插画，已压缩为同站资源，版权归原画师所有，仅作非商业个人展示。动漫 / 游戏 / 音乐封面版权归各自发行方所有，此处仅作清单式索引，不提供任何下载。摄影作品为作者自摄。背景弹幕中一部分文案取自 <a href="https://hitokoto.cn/" target="_blank" rel="noopener noreferrer nofollow">一言（hitokoto.cn）</a>，版权归原作者所有 —— 这是本站唯一的外部网络请求。如权利人认为不妥，请联系我移除。</p>
+      </details>
+    </div>
+  </footer>
+</main>
+
+<script src="../assets/js/core.js"></script>
+<script src="../assets/js/tiles.js"></script>
+<script src="../assets/js/gallery.js"></script>
+</body>
+</html>

@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liar Card · 说谎者之牌</title>
+<style>
+:root{
+  --bg:#0e0f15; --panel:#171922; --panel2:#1f222e; --panel3:#252938;
+  --line:#2b2f3d; --line2:#3a3f52;
+  --text:#e9eaf0; --muted:#8a8fa3; --dim:#5f6478;
+  --attack:#e24b4a; --defense:#378add; --neutral:#ef9f27;
+  --accent:#7f77dd; --good:#1d9e75;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;font-size:13px;cursor:pointer;border:none;background:none;color:inherit}
+button:disabled{cursor:not-allowed;opacity:.35}
+.hidden{display:none!important}
+
+#app{max-width:940px;margin:0 auto;padding:12px 14px 20px;min-height:100vh;display:flex;flex-direction:column;gap:10px}
+
+#topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-size:16px;font-weight:600;letter-spacing:.5px}
+.brand span{color:var(--accent)}
+.brand small{display:block;font-size:11px;font-weight:400;color:var(--dim);letter-spacing:0}
+#topbar .spacer{flex:1}
+.modes{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:2px}
+.modes button{padding:5px 12px;border-radius:7px;color:var(--muted);transition:.15s}
+.modes button.on{background:var(--panel3);color:var(--text)}
+.tbtn{padding:6px 13px;border-radius:9px;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:.15s}
+.tbtn:hover{color:var(--text);border-color:var(--line2)}
+
+.side{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:9px}
+.side.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(127,119,221,.3)}
+.side-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pname{font-size:13px;font-weight:600}
+.ptag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--panel3);color:var(--muted);border:1px solid var(--line)}
+.ptag.you{background:rgba(127,119,221,.18);border-color:rgba(127,119,221,.5);color:#c3bffb}
+.ptag.foe{background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.45);color:#f0a9a8}
+.ptag.role{background:rgba(239,159,39,.16);border-color:rgba(239,159,39,.45);color:#f7d79a}
+.pips{display:flex;gap:3px;margin-left:auto}
+.pip{width:12px;height:12px;border-radius:3px;background:var(--panel3);border:1px solid var(--line2)}
+.pip.on{background:linear-gradient(140deg,#8f88e8,#6b62d6);border-color:#8f88e8}
+.hand{display:flex;gap:7px;flex-wrap:wrap;min-height:74px;align-items:center}
+.hand-empty{color:var(--dim);font-size:12px}
+
+.card{width:66px;height:92px;border-radius:9px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:var(--panel2);border:1px solid var(--line2);transition:transform .12s,box-shadow .12s,border-color .12s;user-select:none;flex:0 0 auto}
+.card .c-tag{position:absolute;top:5px;left:0;right:0;text-align:center;font-size:9px;color:var(--dim);letter-spacing:1px}
+.card .c-name{font-size:15px;font-weight:600;margin-top:6px}
+.card .c-eff{font-size:10px;color:var(--muted);text-align:center;padding:0 4px;line-height:1.25}
+.card.attack{border-color:rgba(226,75,74,.55);background:linear-gradient(175deg,rgba(226,75,74,.16),rgba(226,75,74,.04))}
+.card.defense{border-color:rgba(55,138,221,.55);background:linear-gradient(175deg,rgba(55,138,221,.16),rgba(55,138,221,.04))}
+.card.neutral{border-color:rgba(239,159,39,.55);background:linear-gradient(175deg,rgba(239,159,39,.16),rgba(239,159,39,.04))}
+.card.attack .c-tag{color:var(--attack)}.card.defense .c-tag{color:var(--defense)}.card.neutral .c-tag{color:var(--neutral)}
+.card.clickable{cursor:pointer}
+.card.clickable:hover{transform:translateY(-4px);border-color:var(--accent)}
+.card.sel{transform:translateY(-8px);border-color:var(--accent);box-shadow:0 0 0 2px rgba(127,119,221,.5)}
+.card.mini{width:50px;height:70px}
+.card.mini .c-name{font-size:12px;margin-top:5px}.card.mini .c-eff{font-size:9px}.card.mini .c-tag{font-size:8px;top:3px}
+.card.back{background:repeating-linear-gradient(45deg,#242838 0 6px,#1d2130 6px 12px);border-color:var(--line2)}
+.card.back::after{content:"";width:20px;height:20px;border-radius:50%;border:1px dashed #4a5170}
+
+#board{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:200px}
+.slots{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.slot{flex:1 1 190px;min-width:170px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px}
+.slot .s-who{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.slot .s-role{font-size:10px;padding:1px 7px;border-radius:20px;border:1px solid var(--line2);color:var(--dim)}
+.slot .s-role.atk{color:#f0a9a8;border-color:rgba(226,75,74,.45)}
+.slot .s-role.def{color:#a8cdf5;border-color:rgba(55,138,221,.45)}
+.slot .s-cards{display:flex;gap:6px;flex-wrap:wrap;min-height:70px;align-items:center}
+.slot .s-decl{margin-top:9px;font-size:12px;padding:6px 9px;border-radius:8px;background:var(--panel3);border:1px dashed var(--line2);color:var(--muted)}
+.slot .s-decl b{color:var(--text);font-weight:600}
+.slot .s-decl.lie{border-color:rgba(226,75,74,.6);color:#f0a9a8}
+.slot .s-decl.truth{border-color:rgba(29,158,117,.6);color:#7fd3b6}
+.slot.empty{opacity:.45;border-style:dashed}
+.banner{padding:10px 13px;border-radius:10px;font-size:13px;line-height:1.8}
+.banner.info{background:rgba(127,119,221,.12);border:1px solid rgba(127,119,221,.35)}
+.banner.ok{background:rgba(29,158,117,.13);border:1px solid rgba(29,158,117,.4)}
+.banner.bad{background:rgba(226,75,74,.13);border:1px solid rgba(226,75,74,.4)}
+.banner b{font-weight:600}
+.banner .head{display:block;font-size:11px;color:var(--dim);margin-bottom:5px;letter-spacing:.5px}
+
+#actions{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.prompt{font-size:12.5px;color:var(--muted);line-height:1.7}
+.prompt b{color:var(--text)}
+.prompt .err{color:#f0a9a8}
+.prompt .warn{color:#f7d79a}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:8px 16px;border-radius:9px;border:1px solid var(--line2);background:var(--panel2);transition:.15s;font-size:13px}
+.btn:hover:not(:disabled){border-color:var(--accent);background:var(--panel3)}
+.btn.primary{background:linear-gradient(140deg,#7f77dd,#665dd0);border-color:#8f88e8;color:#fff;font-weight:500}
+.btn.primary:hover:not(:disabled){filter:brightness(1.12)}
+.btn.danger{border-color:rgba(226,75,74,.6);color:#f0a9a8}
+.btn.danger:hover:not(:disabled){background:rgba(226,75,74,.15)}
+.decl-pick{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.decl-pick .lbl{font-size:11.5px;color:var(--dim);margin-right:2px}
+.chip{padding:5px 11px;border-radius:20px;border:1px solid var(--line2);background:var(--panel2);font-size:12px;color:var(--muted);transition:.12s}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.chip.on{background:rgba(127,119,221,.22);border-color:var(--accent);color:#cfcbfb}
+.chip .cnt{font-size:10px;color:var(--dim);margin-left:4px}
+.chip.on .cnt{color:#a9a3ee}
+
+#logbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:9px 13px;max-height:110px;overflow-y:auto;font-size:11.5px;color:var(--muted);line-height:1.8}
+#logbox .l b{color:#c9cddc;font-weight:500}
+
+/* 牌库推演面板 */
+#counts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;border-top:1px dashed var(--line);padding-top:10px}
+#counts:empty{display:none;border-top:none;padding-top:0}
+#counts .t{color:var(--dim);margin-right:2px;font-size:11px}
+#counts .k{padding:2px 8px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+#counts .k b{color:var(--text);font-weight:600}
+#counts .k.low{border-color:rgba(239,159,39,.5);color:#f7d79a}
+#counts .k.low b{color:#f7d79a}
+#counts .k.zero{border-color:rgba(29,158,117,.55);color:#7fd3b6}
+#counts .k.zero b{color:#7fd3b6}
+
+/* 质疑前的数牌推演结论 */
+.readline{font-size:11.5px;line-height:1.75;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:7px 10px}
+.readline b{color:var(--text)}
+.readline.bad{border-left-color:var(--attack);color:#f0a9a8}
+.readline.bad b{color:#f5c0bf}
+
+.overlay{position:fixed;inset:0;background:rgba(8,9,13,.92);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:26px;max-width:470px;width:100%;text-align:center}
+.modal h2{font-size:18px;font-weight:600;margin-bottom:10px}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.75}
+.rules{max-width:680px;text-align:left;max-height:82vh;overflow-y:auto}
+.rules h2{text-align:left}
+.rules h3{font-size:13px;font-weight:600;margin:16px 0 7px;color:var(--accent)}
+.rules ul,.rules ol{margin-left:17px;font-size:12.5px;color:var(--muted);line-height:1.9}
+.rules ul li b,.rules ol li b{color:var(--text)}
+.rules .key{background:rgba(127,119,221,.13);border:1px solid rgba(127,119,221,.35);border-radius:10px;padding:10px 13px;font-size:12.5px;color:var(--muted);line-height:1.8;margin:8px 0}
+.rules .key b{color:var(--text)}
+.rules table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.rules th,.rules td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;color:var(--muted);vertical-align:top}
+.rules th{color:var(--dim);font-weight:500;font-size:11px}
+.rules td b{color:var(--text)}
+@media (max-width:620px){
+  .card{width:56px;height:80px}.card .c-name{font-size:13px}
+  .brand small{display:none}
+}
+/* =========================================================
+   液态玻璃 / Liquid Glass
+   ---------------------------------------------------------
+   规格来自 skill-liquid-glass（backdrop 2.0.0 · Android/Compose）。
+   先说清楚：那个 Skill 跑不到网页上 —— 它依赖 RenderEffect
+   (Android 12+ / API 31) 与 RuntimeShader(API 33+)，是 Kotlin/Compose
+   的绘制管线。所以下面是「把它的规格翻译成 CSS」，不是调用它。
+
+   库的绘制顺序（官方要求不能换序）：
+     colorFilter → blur → lens → Highlight → Shadow → InnerShadow → 表面色
+   逐层落点：
+     vibrancy()  == colorControls(saturation = 1.5)   → saturate(1.5)
+     blur(2dp)                                        → blur()。库里 blur 只有
+                                                        2dp，主要视觉交给
+                                                        lens；网页没有真
+                                                        lens，把等效强度并进
+                                                        blur 值。
+     lens(h, a, chromaticAberration)                  → 边缘折射：用高/暗发丝
+                                                        线做出「光在边上弯
+                                                        折」，再叠一层极淡的
+                                                        色散（偏紫/偏青）。
+     Highlight.Default(angle, falloff)                → 沿对角线的发丝高光，
+                                                        随鼠标向量转向。
+     Shadow(radius 24)                                → 外阴影。
+     InnerShadow(radius 24)                           → 内阴影。
+     onDrawSurface 10% 白                             → 表面那层白。
+
+   一个前提：backdrop-filter 只能模糊「身后真实存在的东西」。
+   原页面 body 是纯色 #0e0f15，身后空无一物，模糊等于没做 ——
+   所以先给 body 铺一层极淡的环境光晕，玻璃才有东西可折射。
+   ========================================================= */
+:root{
+  --lg-blur:11px;
+  --lg-sat:1.5;
+  --lg-bright:1.06;
+  --lg-spec:52px;
+  --lg-rx:0deg; --lg-ry:0deg; --lg-lift:0px; --lg-scale:1;
+  --lg-mx:50%; --lg-my:0%; --lg-hot:0;
+  --lg-shadow:
+    0 5px 26px -8px rgba(0,0,0,.6),
+    0 1px 2px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.44),
+    inset 0 -1px 0 rgba(255,255,255,.12),
+    inset 0 9px 22px -14px rgba(0,0,0,.65);
+}
+/* 注意：这里**不能**把整个 transform 包成一个 --lg-xform 变量。
+   自定义属性是在「声明它的那个元素」上完成 var() 替换的 —— 写在 :root 上，
+   rotateX(var(--lg-rx)) 会在 :root 就替换成 rotateX(0deg) 并被继承成死值，
+   卡片自己后来写的 --lg-rx / --lg-scale 全部被无声忽略。
+   （这是被 tools/preview.py 的 &ptr=1 探针抓出来的：计算出的 transform
+   恒等于矩阵单位阵，倾斜和按压缩放都是死的。）
+   所以 transform 必须在卡片自己的规则里逐字写出来。 */
+
+/* 环境光晕：玻璃的「折射源」。没有它，下面所有 blur 都是空转。 */
+body{position:relative}
+body::before{
+  content:'';position:fixed;inset:-25% -10%;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(48% 42% at 16% 6%,rgba(127,119,221,.34),transparent 64%),
+    radial-gradient(44% 38% at 86% 18%,rgba(55,138,221,.26),transparent 66%),
+    radial-gradient(56% 46% at 58% 100%,rgba(29,158,117,.18),transparent 68%);
+  filter:blur(26px);
+}
+#app{position:relative;z-index:1}
+
+/* 面板：克制的玻璃，只负责托住卡片。
+   底色必须留一点透明度，否则身后那层光晕透不过来，blur 又是空转。
+   边线用 10.5% 白：原来是不透明的 --line(#2b2f3d)，直接换成 7.5% 白会暗一档，
+   牌桌上那些分区框就糊掉了 —— 玻璃不该以牺牲结构辨识度为代价。 */
+.side,#board,#actions,#logbox,.modal,.overlay{
+  backdrop-filter:blur(var(--lg-blur)) saturate(1.35);
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(1.35);
+  border-color:rgba(255,255,255,.105);
+}
+.side{background:rgba(23,25,34,.74)}
+#board{background:rgba(23,25,34,.70)}
+#actions{background:rgba(23,25,34,.74)}
+#logbox{background:rgba(23,25,34,.74)}
+.slot{background:rgba(31,34,46,.62)}
+.modal{background:rgba(23,25,34,.82)}
+.overlay{background:rgba(8,9,13,.66)}
+.side,#board,#actions,#logbox{box-shadow:0 6px 24px -14px rgba(0,0,0,.7)}
+.side.active{box-shadow:0 0 0 1px rgba(127,119,221,.3),0 6px 24px -14px rgba(0,0,0,.7)}
+
+/* 卡片：主角。几何全部沿用上面的规则，这里只换材质。 */
+.card{
+  backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  border-color:rgba(255,255,255,.17);
+  box-shadow:var(--lg-shadow);
+  transition:transform .14s cubic-bezier(.22,.61,.36,1),box-shadow .2s ease,border-color .2s ease;
+}
+/* 表面那层白压在各自主色「之上」，不是替掉它 ——
+   类别色（红/蓝/琥珀）是有含义的，不能被玻璃吃掉。 */
+.card{background:linear-gradient(158deg,rgba(255,255,255,.15),rgba(255,255,255,.045) 50%,rgba(255,255,255,.11)),var(--panel2)}
+.card.attack{background:linear-gradient(158deg,rgba(255,255,255,.15),rgba(255,255,255,.045) 50%,rgba(255,255,255,.11)),linear-gradient(175deg,rgba(226,75,74,.22),rgba(226,75,74,.05))}
+.card.defense{background:linear-gradient(158deg,rgba(255,255,255,.15),rgba(255,255,255,.045) 50%,rgba(255,255,255,.11)),linear-gradient(175deg,rgba(55,138,221,.22),rgba(55,138,221,.05))}
+.card.neutral{background:linear-gradient(158deg,rgba(255,255,255,.15),rgba(255,255,255,.045) 50%,rgba(255,255,255,.11)),linear-gradient(175deg,rgba(239,159,39,.22),rgba(239,159,39,.05))}
+.card.back{background:linear-gradient(158deg,rgba(255,255,255,.15),rgba(255,255,255,.045) 50%,rgba(255,255,255,.11)),repeating-linear-gradient(45deg,rgba(36,40,56,.92) 0 6px,rgba(29,33,48,.92) 6px 12px)}
+
+/* 指针高光：高光中心跟着鼠标向量走。
+   用 ::before —— 因为 .card.back::after 已经被牌背那个虚线圆占用了。
+   mix-blend-mode:screen 让它只「加光」，不把牌面上的字洗白。 */
+.card::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(circle var(--lg-spec) at var(--lg-mx) var(--lg-my),
+    rgba(255,255,255,.32),rgba(255,255,255,.08) 44%,transparent 72%);
+  opacity:var(--lg-hot,0);
+  transition:opacity .22s ease;
+  mix-blend-mode:screen;
+}
+/* 只在真有精细指针时点亮；触屏上 :hover 会「粘住」，不能给。
+   这里让 :hover 去写变量而不是直接写 opacity —— 这样不透明度始终只有
+   --lg-hot 一个来源，探针也能靠改这个变量把「变量 -> 绘制」这一段单独验掉。 */
+@media (hover:hover) and (pointer:fine){
+  .card:hover{--lg-hot:1}
+}
+
+/* 悬停 / 选中：抬升量改成变量，好和 3D 倾斜共用同一个 transform */
+.card.clickable:hover{--lg-lift:-4px;border-color:var(--accent)}
+.card.sel{--lg-lift:-8px;border-color:var(--accent);box-shadow:0 0 0 2px rgba(127,119,221,.5),var(--lg-shadow)}
+.card.mini{--lg-spec:34px}
+
+/* 必须放在最后：上面两条 .card.clickable:hover / .card.sel 在原表里写死了
+   transform:translateY(...)，同权重靠后者胜。这里把 transform 收回来统一成
+   「透视 + 鼠标向量倾斜 + 抬升 + 按压缩放」。
+   逐字写出来，不要再套一层 --lg-xform（原因见上面 :root 里的那段注释）。 */
+.card,.card.clickable:hover,.card.sel{
+  transform:perspective(680px)
+            rotateX(var(--lg-rx)) rotateY(var(--lg-ry))
+            translateY(var(--lg-lift)) scale(var(--lg-scale));
+}
+
+@media (prefers-reduced-motion:reduce){
+  .card{transition:box-shadow .2s ease,border-color .2s ease}
+  .card::before{transition:none}
+}
+@media (max-width:620px){
+  :root{--lg-blur:8px;--lg-spec:38px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand">Liar <span>Card</span><small>说谎者之牌 · 按「声明」结算的双人博弈</small></div>
+    <div class="spacer"></div>
+    <div class="modes" id="modes">
+      <button data-mode="ai" class="on">人机对战</button>
+      <button data-mode="hotseat">双人同屏</button>
+    </div>
+    <button class="tbtn" id="btn-rules">规则</button>
+    <button class="tbtn" id="btn-restart">重开</button>
+  </header>
+
+  <section class="side" id="side-top">
+    <div class="side-head">
+      <span class="pname" id="top-name">对手</span>
+      <span class="ptag" id="top-tag"></span>
+      <span class="ptag role hidden" id="top-role"></span>
+      <span class="pips" id="top-pips"></span>
+    </div>
+    <div class="hand" id="top-hand"></div>
+  </section>
+
+  <section id="board">
+    <div class="slots" id="slots"></div>
+    <div id="banner"></div>
+    <div id="counts"></div>
+  </section>
+
+  <section class="side" id="side-bottom">
+    <div class="hand" id="bot-hand"></div>
+    <div class="side-head">
+      <span class="pname" id="bot-name">你</span>
+      <span class="ptag" id="bot-tag"></span>
+      <span class="ptag role hidden" id="bot-role"></span>
+      <span class="pips" id="bot-pips"></span>
+    </div>
+  </section>
+
+  <footer id="actions"></footer>
+  <div id="logbox"></div>
+</div>
+<div id="overlay" class="overlay hidden"></div>
+<div id="handoff" class="overlay hidden"></div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   牌库 —— 20 张
+   ========================================================= */
+var CARD_INFO = {
+  soldier:     { name:'士兵',   cat:'attack',  per:1, copies:4, eff:'抢 1 点' },
+  archer:      { name:'弓箭手', cat:'attack',  per:1, copies:3, eff:'抢 1 点' },
+  mage:        { name:'法师',   cat:'attack',  per:2, copies:2, eff:'抢 2 点' },
+  cannon:      { name:'炮手',   cat:'attack',  per:1, copies:1, eff:'抢 1 点·穿防' },
+  shield:      { name:'盾卫',   cat:'defense', per:0, copies:5, eff:'抵消士兵/弓手' },
+  magicShield: { name:'法盾',   cat:'defense', per:0, copies:2, eff:'抵消法师' },
+  assassin:    { name:'刺客',   cat:'neutral', per:0, copies:1, eff:'潜行查牌·夺 1 点' },
+  spy:         { name:'间谍',   cat:'neutral', per:0, copies:1, eff:'万能牌·只能单出' },
+  junk:        { name:'墨条',   cat:'neutral', per:0, copies:1, eff:'废卡·只能当垫牌' }
+};
+/* 可被「声明」的牌名 —— 中立牌都不能直接声明，只能混在牌堆里 */
+var DECLARABLE = ['士兵','弓箭手','法师','炮手','盾卫','法盾'];
+var CAT_LABEL = { attack:'攻击', defense:'防守', neutral:'中立' };
+var ATTACK_NAMES  = ['士兵','弓箭手','法师','炮手'];
+var DEFENSE_NAMES = ['盾卫','法盾'];
+var KEY_BY_NAME = {}, ALL_KEY_BY_NAME = {};
+(function(){
+  for (var k in CARD_INFO){
+    if (!Object.prototype.hasOwnProperty.call(CARD_INFO,k)) continue;
+    ALL_KEY_BY_NAME[CARD_INFO[k].name] = k;
+    if (CARD_INFO[k].cat !== 'neutral') KEY_BY_NAME[CARD_INFO[k].name] = k;
+  }
+})();
+
+var PHASE = { LEAD:'lead', DEFEND:'defend', COUNTER:'counter', REVEAL:'reveal', OVER:'over' };
+
+var G = null;
+var TIMER = null;
+
+/* =========================================================
+   工具
+   ========================================================= */
+function shuffle(a){
+  for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function other(p){ return 1-p; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function isAttackName(n){ return ATTACK_NAMES.indexOf(n) >= 0; }
+function isDefenseName(n){ return DEFENSE_NAMES.indexOf(n) >= 0; }
+function pname(p){
+  if (G.mode === 'ai') return p===0 ? '你' : 'AI';
+  return p===0 ? '玩家 1' : '玩家 2';
+}
+function pushLog(html){
+  G.log.push(html);
+  if (G.log.length > 160) G.log.shift();
+}
+
+/* =========================================================
+   初始化
+   ========================================================= */
+function newGame(mode){
+  if (TIMER){ clearTimeout(TIMER); TIMER = null; }
+  var deck = [], id = 0;
+  for (var k in CARD_INFO){
+    if (!Object.prototype.hasOwnProperty.call(CARD_INFO,k)) continue;
+    for (var i=0;i<CARD_INFO[k].copies;i++) deck.push({ id:'c'+(id++), key:k });
+  }
+  shuffle(deck);
+  G = {
+    mode: mode || 'ai',
+    deck: deck,
+    discard: [],
+    hands: { 0:[], 1:[] },
+    points: { 0:3, 1:4 },
+    attacker: 0,
+    actor: 0,
+    phase: PHASE.LEAD,
+    plays: [],
+    sel: [],
+    declName: null,
+    over: null,
+    log: [],
+    intelLog: { 0:{t:0,n:0}, 1:{t:0,n:0} },   /* 刺客查证过的样本：某人被看穿了几次、几次是真话 */
+    intel: null,
+    resultLines: null,
+    gameOverInfo: null,
+    handoffFor: null,
+    flashMsg: ''
+  };
+  drawTo(0,4); drawTo(1,4);
+  G.actor = G.attacker;
+  if (G.mode === 'hotseat') G.handoffFor = G.actor;
+  pushLog('新的一局 — 先手 3 点，后手 4 点，20 张共用牌库');
+  pushLog('<b>'+pname(G.attacker)+'</b> 先攻（先出牌、先声明）');
+  render();
+}
+
+function drawTo(p, n){
+  var h = G.hands[p];
+  while (h.length < n){
+    if (G.deck.length === 0){
+      if (G.discard.length === 0) break;
+      G.deck = shuffle(G.discard); G.discard = [];
+      pushLog('牌库耗尽 · 弃牌堆洗回');
+    }
+    h.push(G.deck.pop());
+  }
+}
+/* =========================================================
+   声明候选 —— 决定「这一叠牌能被声明成什么」
+   ========================================================= */
+function phaseRole(){
+  if (!G) return 'attacker';
+  if (G.phase === PHASE.DEFEND) return 'defender';
+  return 'attacker';
+}
+/* 间谍「只能单出」—— 一旦和其他牌混在一叠里，整叠作废 */
+function hasSpyMixed(cards){
+  if (!cards || cards.length <= 1) return false;
+  for (var i=0;i<cards.length;i++) if (cards[i].key === 'spy') return true;
+  return false;
+}
+function hasKey(cards, key){
+  if (!cards) return false;
+  for (var i=0;i<cards.length;i++) if (cards[i].key === key) return true;
+  return false;
+}
+function declNamesFor(cards, role){
+  if (!cards || cards.length === 0) return [];
+  if (hasSpyMixed(cards)) return [];
+  return role === 'attacker' ? ATTACK_NAMES.slice() : DEFENSE_NAMES.slice();
+}
+function selectedCards(){
+  if (!G) return [];
+  var hand = G.hands[G.actor] || [];
+  var out = [];
+  for (var i=0;i<G.sel.length;i++){
+    for (var j=0;j<hand.length;j++) if (hand[j].id === G.sel[i]) { out.push(hand[j]); break; }
+  }
+  return out;
+}
+
+/* =========================================================
+   行动
+   ========================================================= */
+function makePlay(by, role, cards, declaredName){
+  var play = { by:by, role:role, cards:cards.slice(), declaredName:declaredName, declaredCount:cards.length };
+  var ids = {};
+  for (var i=0;i<cards.length;i++) ids[cards[i].id] = 1;
+  G.hands[by] = G.hands[by].filter(function(c){ return !ids[c.id]; });
+  G.plays.push(play);
+  drawTo(by, 4);
+  G.sel = []; G.declName = null; G.flashMsg = '';
+  return play;
+}
+function resolveDecl(cards, role){
+  var names = declNamesFor(cards, role);
+  if (names.length === 0) return null;
+  return (G.declName && names.indexOf(G.declName) >= 0) ? G.declName : names[0];
+}
+function doLead(){
+  var cards = selectedCards();
+  if (cards.length === 0){ G.flashMsg = '请先选择要打出的牌'; render(); return; }
+  var name = resolveDecl(cards, 'attacker');
+  if (!name){
+    G.flashMsg = hasSpyMixed(cards) ? '间谍只能单出 —— 不能和其他牌混成一叠' : '这些牌不能作为进攻打出';
+    render(); return;
+  }
+  makePlay(G.attacker, 'attacker', cards, name);
+  pushLog('<b>'+pname(G.attacker)+'</b> 打出 '+cards.length+' 张，声明「'+esc(name)+' ×'+cards.length+'」');
+  setPhase(PHASE.DEFEND, other(G.attacker));
+}
+function doPass(){
+  pushLog('<b>'+pname(G.actor)+'</b> 无牌可出，空过');
+  G.sel = []; G.declName = null;
+  nextHand();
+}
+function doDefend(action){
+  if (action === 'fold'){
+    pushLog('<b>'+pname(G.actor)+'</b> 认赔 — 放弃防御');
+    setPhase(PHASE.REVEAL, G.attacker);
+    return;
+  }
+  var cards = selectedCards();
+  if (cards.length === 0){ G.flashMsg = '请先选择要打出的牌'; render(); return; }
+  var name = resolveDecl(cards, 'defender');
+  if (!name){
+    G.flashMsg = hasSpyMixed(cards) ? '间谍只能单出 —— 不能和其他牌混成一叠' : '这些牌不能作为应对打出';
+    render(); return;
+  }
+  makePlay(G.actor, 'defender', cards, name);
+  pushLog('<b>'+pname(G.actor)+'</b> 应对 '+cards.length+' 张，声明「'+esc(name)+' ×'+cards.length+'」');
+  setPhase(PHASE.COUNTER, G.attacker);
+}
+/* 应对阶段：攻方只能选择质疑或接受结算，不能再出牌 */
+function doCounter(action){
+  setPhase(PHASE.REVEAL, G.attacker);
+}
+function doChallenge(){
+  challenge(G.plays.length-1, G.actor);
+}
+
+/* =========================================================
+   真假核对
+   间谍可以当成任何牌 —— 带间谍的牌堆，声明恒为真
+   ========================================================= */
+function playCards(p){ return p.shown || p.cards; }
+function isTruthful(play){
+  var cs = playCards(play);
+  if (cs.length !== play.declaredCount) return false;
+  for (var i=0;i<cs.length;i++){
+    if (cs[i].key === 'spy') continue;
+    if (CARD_INFO[cs[i].key].name !== play.declaredName) return false;
+  }
+  return true;
+}
+function realNamesOf(play){
+  var cs = playCards(play), out = [];
+  for (var i=0;i<cs.length;i++) out.push(CARD_INFO[cs[i].key].name);
+  return out.join('、');
+}
+/* 把牌堆收进弃牌堆，同时留一份副本用于界面展示 */
+function archivePlay(p){
+  if (p.archived) return;
+  p.archived = true;
+  p.shown = p.cards.slice();
+  for (var i=0;i<p.cards.length;i++) G.discard.push(p.cards[i]);
+  p.cards = [];
+}
+function challenge(playIndex, challenger){
+  var play = G.plays[playIndex];
+  if (!play) return;
+  var truthful = isTruthful(play);
+  play.revealed = true;
+  pushLog('<b>'+pname(challenger)+'</b> 质疑「'+esc(play.declaredName)+' ×'+play.declaredCount+'」— 翻开是「'+esc(realNamesOf(play))+'」');
+  var winner, reason;
+  if (truthful){
+    winner = play.by;
+    reason = pname(play.by)+' 声明「'+play.declaredName+' ×'+play.declaredCount+'」属实' +
+      (realNamesOf(play).indexOf('间谍') >= 0 ? '（间谍可当任何牌）' : '') +
+      '，'+pname(challenger)+' 的质疑落空。';
+  } else {
+    winner = challenger;
+    reason = pname(play.by)+' 声明「'+play.declaredName+' ×'+play.declaredCount+'」，翻开却是「'+realNamesOf(play)+'」。';
+  }
+  for (var i=0;i<G.plays.length;i++) G.plays[i].revealed = true;
+  G.over = winner;
+  G.gameOverInfo = { winner:winner, reason:reason, challenged:true };
+  setPhase(PHASE.REVEAL, G.attacker);
+}
+
+/* =========================================================
+   结算 —— 完全按「声明」，结算过程不翻开任何底牌
+   唯一能看到底牌的是刺客：它潜入查牌，是它自己的能力
+   ========================================================= */
+function settle(){
+  var lead = G.plays[0];
+  var attacker = lead.by, defender = other(attacker);
+  var A = lead.declaredName, nA = lead.declaredCount;
+  var lines = [];
+
+  var B = null, nB = 0;
+  for (var i=1;i<G.plays.length;i++){
+    var p = G.plays[i];
+    if (p.by === attacker) continue;
+    if (isDefenseName(p.declaredName)){ B = p.declaredName; nB = p.declaredCount; break; }
+  }
+
+  var per = (A === '法师') ? 2 : 1;
+  var block = 0;
+  if (A !== '炮手'){
+    if (A === '法师' && B === '法盾') block = Math.min(nA, nB);
+    else if ((A === '士兵' || A === '弓箭手') && B === '盾卫') block = Math.min(nA, nB);
+  }
+  var free = nA - block;
+  var seize = free * per;
+
+  lines.push('按明面声明结算，双方底牌一律不翻');
+  lines.push('攻方声明「<b>'+esc(A)+' ×'+nA+'</b>」');
+  if (A === '炮手') lines.push('炮手无视防御 —— 无法被抵消');
+  else if (B) lines.push('守方声明「<b>'+esc(B)+' ×'+nB+'</b>」→ 抵消 '+block+' 张');
+  else lines.push('守方没有给出防御声明 → 抵消 0 张');
+  lines.push('穿透 <b>'+free+'</b> 张 × 每张 '+per+' 点 = 抢点 <b>'+seize+'</b>');
+
+  var give = Math.min(seize, G.points[defender]);
+  if (give > 0){
+    G.points[attacker] += give;
+    G.points[defender] -= give;
+    lines.push('<b>'+pname(attacker)+'</b> 从 '+pname(defender)+' 手中夺得 '+give+' 个战略点');
+  } else {
+    lines.push('本手无人得分');
+  }
+
+  /* ---- 刺客：混在牌堆里没被质疑，就潜入查牌 ---- */
+  var intel = null;
+  for (var q=0;q<G.plays.length;q++){
+    var pl = G.plays[q];
+    if (!hasKey(playCards(pl), 'assassin')) continue;
+    var target = null;
+    for (var t=0;t<G.plays.length;t++){ if (G.plays[t].by !== pl.by){ target = G.plays[t]; break; } }
+    if (!target){
+      lines.push('<b>'+pname(pl.by)+'</b> 的刺客潜入 —— 对方没有出牌，无人可查');
+      continue;
+    }
+    var foe = target.by;
+    var ok = isTruthful(target);
+    target.peekedBy = pl.by;
+    G.intelLog[pl.by].n++;
+    if (ok) G.intelLog[pl.by].t++;
+    intel = {
+      owner: pl.by, foe: foe, truthful: ok,
+      name: target.declaredName, count: target.declaredCount,
+      real: realNamesOf(target)
+    };
+    lines.push('—— <b>刺客潜入查牌</b> ——');
+    if (ok){
+      var steal = Math.min(1, G.points[foe]);
+      if (steal > 0){
+        G.points[pl.by] += steal; G.points[foe] -= steal;
+        lines.push('<b>'+pname(pl.by)+'</b> 的刺客查看了对方的底牌「'+esc(realNamesOf(target))+
+          '」—— 与其声明「'+esc(target.declaredName)+'」<b>相符</b>，顺手再夺 <b>1</b> 点');
+      } else {
+        lines.push('<b>'+pname(pl.by)+'</b> 的刺客查看了对方的底牌 —— 声明属实，但对方已无点可夺');
+      }
+    } else {
+      lines.push('<b>'+pname(pl.by)+'</b> 的刺客查看了对方的底牌「'+esc(realNamesOf(target))+
+        '」—— 与其声明「'+esc(target.declaredName)+'」<b>不符</b>，没抢到点（但对方是骗子这件事，已经知道了）');
+    }
+  }
+
+  for (var r=0;r<G.plays.length;r++) archivePlay(G.plays[r]);
+  G.resultLines = { lines: lines };
+  G.intel = intel;
+  setPhase(PHASE.REVEAL, attacker);
+}
+
+/* =========================================================
+   阶段 / 流程
+   ========================================================= */
+function setPhase(phase, actor){
+  G.phase = phase;
+  G.actor = actor;
+  G.sel = []; G.declName = null; G.flashMsg = '';
+  if (phase === PHASE.REVEAL && !G.gameOverInfo && !G.resultLines){
+    if (G.plays.length === 0){ G.phase = PHASE.LEAD; G.actor = G.attacker; render(); return; }
+    settle();
+    return;
+  }
+  if (phase === PHASE.REVEAL){
+    /* 注意：这里绝不翻开底牌 —— 结算后信息依旧不透明，
+       唯一见过底牌的只有潜入查牌的刺客（它会在战报里点名）。 */
+    checkPointsWin();
+  }
+  if (phase !== PHASE.OVER && G.mode === 'hotseat' && !G.over) G.handoffFor = actor;
+  render();
+  if (G.mode === 'ai' && phase !== PHASE.OVER && phase !== PHASE.REVEAL) aiMaybeAct();
+}
+function checkPointsWin(){
+  if (G.over || G.gameOverInfo) return;
+  if (G.points[0] <= 0){ G.over = 1; G.gameOverInfo = { winner:1, reason:pname(0)+' 的战略点归零。', challenged:false }; }
+  else if (G.points[1] <= 0){ G.over = 0; G.gameOverInfo = { winner:0, reason:pname(1)+' 的战略点归零。', challenged:false }; }
+}
+function nextHand(){
+  if (G.over) return;
+  G.plays = [];
+  G.resultLines = null;
+  G.intel = null;
+  G.attacker = other(G.attacker);
+  G.actor = G.attacker;
+  setPhase(PHASE.LEAD, G.attacker);
+}
+/* =========================================================
+   AI
+   ========================================================= */
+function aiMaybeAct(){
+  if (!G || G.over) return;
+  if (G.mode !== 'ai') return;
+  if (G.actor !== 1) return;
+  if (G.phase === PHASE.REVEAL || G.phase === PHASE.OVER) return;
+  if (TIMER) clearTimeout(TIMER);
+  TIMER = setTimeout(function(){ TIMER = null; aiAct(); }, 480 + Math.random()*460);
+}
+function aiAct(){
+  if (!G || G.over || G.actor !== 1) return;
+  if (G.phase === PHASE.LEAD) aiLead();
+  else if (G.phase === PHASE.DEFEND) aiDefend();
+  else if (G.phase === PHASE.COUNTER) aiCounterAct();
+}
+function groupsOf(p){
+  var hand = G.hands[p], g = {};
+  for (var i=0;i<hand.length;i++){
+    var k = hand[i].key;
+    if (!g[k]) g[k] = [];
+    g[k].push(hand[i]);
+  }
+  return g;
+}
+function burnOrder(key){
+  if (key === 'junk') return 0;
+  if (key === 'shield') return 1;
+  if (key === 'magicShield') return 2;
+  if (key === 'archer') return 3;
+  if (key === 'soldier') return 4;
+  if (key === 'cannon') return 6;
+  if (key === 'mage') return 7;
+  return 5;
+}
+/* 弃牌优先级：越没用的越先垫出去 */
+function pickBurn(p, n){
+  var hand = G.hands[p].slice();
+  hand.sort(function(a,b){ return burnOrder(a.key) - burnOrder(b.key); });
+  return hand.slice(0, n);
+}
+/* ---------------------------------------------------------
+   数牌推演
+   结算不翻牌，所以弃牌堆是匿名的 —— 谁也不知道里面是什么。
+   唯一铁打的证据是：我自己手上的牌 + 本轮我自己摊在桌上的牌。
+   这两处之外的牌，才「有可能」在对手手里。
+   --------------------------------------------------------- */
+function availToOpponent(key, me){
+  var info = CARD_INFO[key];
+  if (!info) return 0;
+  var out = info.copies, i, j;
+  var h = G.hands[me] || [];
+  for (i=0;i<h.length;i++) if (h[i].key === key) out--;
+  for (i=0;i<G.plays.length;i++){
+    if (G.plays[i].by !== me) continue;
+    var cs = playCards(G.plays[i]);
+    for (j=0;j<cs.length;j++) if (cs[j].key === key) out--;
+  }
+  return Math.max(0, out);
+}
+/* 刺客查证过的样本 —— 只有真被刺客看过底牌，才算「学到了」 */
+function liePrior(me){
+  var h = G.intelLog[me];
+  if (!h || h.n === 0) return 0.32;
+  return Math.max(0.05, Math.min(0.90, 1 - h.t / h.n));
+}
+function declaredPer(name){ return name === '法师' ? 2 : 1; }
+/* 这一手如果放过去，我实际会亏多少点 */
+function threatOf(play, me){
+  if (play.by === me) return 0;
+  if (isAttackName(play.declaredName)) return play.declaredCount * declaredPer(play.declaredName);
+  if (isDefenseName(play.declaredName)){
+    var lead = G.plays[0];
+    if (!lead || lead.by !== me) return 0;
+    return Math.min(play.declaredCount, lead.declaredCount) * declaredPer(lead.declaredName);
+  }
+  return 0;
+}
+/* ---------------------------------------------------------
+   概率：他手上「真有这么多张」的可能性有多大？
+   把对手的手牌看成从「未现池」里抽出来的 4 张，用超几何分布算。
+   例：声明「士兵 ×2」—— 全库 4 张、池子 16 张，抽 4 张里凑够 2 张的概率只有约 24%。
+   --------------------------------------------------------- */
+function comb(n, k){
+  if (k < 0 || k > n) return 0;
+  if (k > n - k) k = n - k;
+  var r = 1;
+  for (var i=1;i<=k;i++) r = r * (n - k + i) / i;
+  return r;
+}
+function hyperAtLeast(N, K, draws, t){
+  if (t <= 0) return 1;
+  if (K < t || N <= 0) return 0;
+  var total = comb(N, draws);
+  if (total <= 0) return 0;
+  var s = 0, top = Math.min(K, draws);
+  for (var i=t;i<=top;i++) s += comb(K, i) * comb(N - K, draws - i);
+  return Math.max(0, Math.min(1, s / total));
+}
+/* 未现池 = 20 张里扣掉「我能确定的牌」（自己的手牌 + 本轮自己摊在桌上的牌） */
+function unknownPool(me){
+  var pool = 0;
+  for (var k in CARD_INFO){
+    if (!Object.prototype.hasOwnProperty.call(CARD_INFO, k)) continue;
+    pool += CARD_INFO[k].copies;
+  }
+  pool -= (G.hands[me] || []).length;
+  for (var i=0;i<G.plays.length;i++){
+    if (G.plays[i].by === me) pool -= playCards(G.plays[i]).length;
+  }
+  return Math.max(1, pool);
+}
+function pTruthful(play, me){
+  var key = ALL_KEY_BY_NAME[play.declaredName];
+  if (!key) return 0;
+  var avail = availToOpponent(key, me);
+  var n = play.declaredCount;
+  if (n > avail) return 0;
+  var pool = unknownPool(me);
+  return hyperAtLeast(pool, avail, Math.min(4, pool), n);
+}
+/* 返回 {chance, why} —— why 就是 AI 摆在台面上的质疑理由 */
+function challengeRead(play, me){
+  var name = play.declaredName, n = play.declaredCount;
+  var key = ALL_KEY_BY_NAME[name];
+  if (!key) return { chance:0, why:'' };
+  var copies = CARD_INFO[key].copies;
+  var avail = availToOpponent(key, me);
+
+  /* ① 逻辑错误：账本直接算死 —— 必抓，不看局势、不讲情面 */
+  if (n > avail){
+    var known = copies - avail;
+    return { chance:1, why: known > 0
+      ? '「'+name+'」全库只有 '+copies+' 张，其中至少 '+known+' 张在我手里 —— 你拿不出 '+n+' 张'
+      : '「'+name+'」全库就 '+copies+' 张 —— 你声明 '+n+' 张，这本身就超出了牌库总数' };
+  }
+
+  /* ② 概率：账本可信度 × 对方一贯的诈唬率 */
+  var pT = pTruthful(play, me);
+  var sus = 1 - pT * (1 - liePrior(me));
+  var threat = threatOf(play, me);
+  var diff = G.points[me] - G.points[other(me)];
+
+  if (diff <= -2) sus += 0.06;          /* 落后，更愿意搏 */
+  if (G.points[me] <= 2) sus += 0.05;   /* 快被清空，必须搏 */
+  if (key === 'cannon') sus += 0.10;    /* 炮手挡不住，放过去就是白送 */
+  sus = Math.max(0, Math.min(1, sus));
+
+  /* ③ 小威胁不赌：为 2 点以下把整局推上赌桌不划算 */
+  if (threat <= 0){
+    return { chance:0.02, why:'这一手根本伤不到我，没必要为它冒险' };
+  }
+  if (threat <= 2){
+    if (sus > 0.88) return { chance:0.18, why:'这一手只值 '+threat+' 点，本来犯不上赌 —— 但你这笔账实在离谱' };
+    return { chance:0.04, why:'这一手最多值 '+threat+' 点，犯不上拿整局去赌' };
+  }
+  /* ④ 已经领先 2 点以上 —— 不冒无谓的风险 */
+  if (diff >= 2){
+    return { chance:0.05, why:'我领先 '+diff+' 点，没必要冒险' };
+  }
+
+  /* ⑤ 质疑＝把整局推上赌桌。没有足够离谱就不出手：
+        先把「可疑度」按 0.72~1.0 重新拉伸，再取 1.8 次幂压低下限 */
+  var x = Math.max(0, (sus - 0.72) / 0.28);
+  var p = Math.pow(x, 1.8) * 0.70;
+  p = Math.max(0.03, Math.min(0.70, p));
+
+  var why = '你一次出 '+n+' 张'+name+' —— 账本算下来，你手上真凑得出这 '+n+
+    ' 张的概率只有约 '+Math.round(pT * 100)+'%';
+  return { chance:p, why:why };
+}
+/* 组装一叠要打出去的牌；useAssassin = 要不要把刺客悄悄混进去 */
+function buildStack(p, declKey, n, useAssassin){
+  var g = groupsOf(p);
+  var hand = G.hands[p].slice();
+  var out = [];
+  function take(c){
+    var i = hand.indexOf(c);
+    if (i < 0) return false;
+    hand.splice(i,1); out.push(c); return true;
+  }
+  if (useAssassin && g.assassin && n >= 1){ if (take(g.assassin[0])) n--; }
+  var real = (g[declKey] || []).slice();
+  for (var i=0;i<real.length && n>0;i++){ if (take(real[i])) n--; }
+  if (n > 0){
+    hand.sort(function(a,b){ return burnOrder(a.key) - burnOrder(b.key); });
+    for (var j=0;j<hand.length && n>0;j++){
+      if (hand[j].key === 'assassin') continue;
+      if (hand[j].key === 'spy') continue;      /* 间谍只能单出 */
+      out.push(hand[j]); n--;
+    }
+  }
+  return out;
+}
+function aiChallenge(play, read){
+  var idx = G.plays.indexOf(play);
+  if (idx < 0) idx = G.plays.length - 1;
+  pushLog('<b>AI 质疑</b>：'+esc(read.why)+'。' +
+    (read.chance >= 1 ? '<b>这不是猜的，是算出来的。</b>' : ''));
+  challenge(idx, 1);
+}
+function aiLead(){
+  var hand = G.hands[1];
+  if (!hand.length){ doPass(); return; }
+  var g = groupsOf(1);
+
+  /* 1. 先看手上最实在的攻击牌组 */
+  var bestKey = null, bestN = 0, bestVal = -1;
+  for (var i=0;i<ATTACK_NAMES.length;i++){
+    var k = ALL_KEY_BY_NAME[ATTACK_NAMES[i]];
+    var n = Math.min((g[k]||[]).length, 3);
+    if (n <= 0) continue;
+    var val = CARD_INFO[k].per * n + (k === 'cannon' ? 1.0 : 0);
+    if (val > bestVal){ bestVal = val; bestKey = k; bestN = n; }
+  }
+
+  /* 2. 要不要撒个大谎：法师全库只有 2 张，声明 3 张必被抓 */
+  var lieN = Math.min(hand.length, CARD_INFO.mage.copies);
+  var lieChance = 0.14 + (G.points[1] < G.points[0] ? 0.12 : 0);
+  var lying = lieN >= 2 && 2 * lieN > bestVal + 1.0 && Math.random() < lieChance;
+
+  var declKey, useN;
+  if (lying){ declKey = 'mage'; useN = lieN; }
+  else if (bestKey){ declKey = bestKey; useN = bestN; }
+  else { declKey = 'soldier'; useN = 1; lying = true; }
+
+  /* 3. 刺客：混进这叠里，结算时能悄悄多偷 1 点 —— 代价是这叠从此是谎言 */
+  var useAs = false;
+  if (g.assassin){
+    var mc = 0.14;
+    if (G.points[1] < G.points[0]) mc += 0.12;
+    if (useN >= 2) mc += 0.08;
+    useAs = Math.random() < mc;
+  }
+
+  var picks = buildStack(1, declKey, useN, useAs);
+  if (!picks.length){ doPass(); return; }
+  var name = CARD_INFO[declKey].name;
+  G.sel = picks.map(function(c){ return c.id; });
+  makePlay(1, 'attacker', picks, name);
+  pushLog('<b>AI</b> 打出 '+picks.length+' 张，声明「'+esc(name)+' ×'+picks.length+'」');
+  setPhase(PHASE.DEFEND, 0);
+}
+function aiDefend(){
+  var lead = G.plays[0];
+  var A = lead.declaredName;
+
+  var read = challengeRead(lead, 1);
+  if (read.chance >= 1 || Math.random() < read.chance){ aiChallenge(lead, read); return; }
+
+  var g = groupsOf(1);
+  if (A === '炮手'){
+    pushLog('<b>AI</b> 认赔 — 炮手穿防，挡也白挡');
+    setPhase(PHASE.REVEAL, G.attacker);
+    return;
+  }
+  var wantKey = (A === '法师') ? 'magicShield' : 'shield';
+  var wantName = CARD_INFO[wantKey].name;
+  var have = (g[wantKey] || []).length;
+  var useAs = !!(g.assassin && Math.random() < 0.20);
+  var wantN = Math.min(lead.declaredCount, have + (useAs ? 1 : 0));
+  if (have > 0 && wantN > 0){
+    var cs = buildStack(1, wantKey, wantN, useAs);
+    G.sel = cs.map(function(c){ return c.id; });
+    makePlay(1, 'defender', cs, wantName);
+    pushLog('<b>AI</b> 应对 '+cs.length+' 张，声明「'+esc(wantName)+' ×'+cs.length+'」');
+    setPhase(PHASE.COUNTER, 0);
+    return;
+  }
+  if (G.hands[1].length >= lead.declaredCount && Math.random() < 0.55){
+    var burn = buildStack(1, wantKey, lead.declaredCount, false);
+    if (burn.length){
+      G.sel = burn.map(function(c){ return c.id; });
+      makePlay(1, 'defender', burn, wantName);
+      pushLog('<b>AI</b> 应对 '+burn.length+' 张，诈称「'+esc(wantName)+' ×'+burn.length+'」');
+      setPhase(PHASE.COUNTER, 0);
+      return;
+    }
+  }
+  pushLog('<b>AI</b> 认赔');
+  setPhase(PHASE.REVEAL, G.attacker);
+}
+function aiCounterAct(){
+  var last = G.plays[G.plays.length-1];
+  var read = challengeRead(last, 1);
+  if (read.chance >= 1 || Math.random() < read.chance){ aiChallenge(last, read); return; }
+  setPhase(PHASE.REVEAL, G.attacker);
+}
+/* =========================================================
+   渲染
+   ========================================================= */
+function bottomPlayer(){
+  if (G.mode === 'ai') return 0;
+  if (G.phase === PHASE.OVER) return 0;
+  return G.actor;
+}
+function topPlayer(){ return other(bottomPlayer()); }
+function isHumanTurn(){
+  if (!G || G.over) return false;
+  if (G.phase === PHASE.REVEAL || G.phase === PHASE.OVER) return false;
+  if (G.mode === 'ai') return G.actor === 0;
+  return true;
+}
+function cardHTML(card, opts){
+  opts = opts || {};
+  var info = CARD_INFO[card.key];
+  var cls = 'card ' + info.cat + (opts.mini ? ' mini' : '');
+  if (opts.selected) cls += ' sel';
+  if (opts.clickable) cls += ' clickable';
+  return '<div class="'+cls+'" data-card="'+card.id+'" title="'+esc(info.name+' · '+info.eff)+'">' +
+      '<div class="c-tag">'+CAT_LABEL[info.cat]+'</div>' +
+      '<div class="c-name">'+esc(info.name)+'</div>' +
+      '<div class="c-eff">'+esc(info.eff)+'</div>' +
+    '</div>';
+}
+function backHTML(mini){ return '<div class="card back'+(mini?' mini':'')+'"></div>'; }
+function renderPips(pts){
+  var out = '';
+  for (var i=0;i<7;i++) out += '<span class="pip'+(i<pts?' on':'')+'"></span>';
+  return out;
+}
+function render(){
+  if (!G) return;
+  var bot = bottomPlayer(), top = topPlayer();
+
+  document.getElementById('top-name').textContent = pname(top);
+  document.getElementById('bot-name').textContent = pname(bot);
+  var tt = document.getElementById('top-tag'), bt = document.getElementById('bot-tag');
+  if (G.mode === 'ai'){
+    tt.textContent = 'AI'; tt.className = 'ptag foe';
+    bt.textContent = '你'; bt.className = 'ptag you';
+  } else {
+    tt.textContent = ''; bt.textContent = '';
+    tt.className = 'ptag hidden'; bt.className = 'ptag hidden';
+  }
+  document.getElementById('top-pips').innerHTML = renderPips(G.points[top]);
+  document.getElementById('bot-pips').innerHTML = renderPips(G.points[bot]);
+
+  var topRole = document.getElementById('top-role');
+  var botRole = document.getElementById('bot-role');
+  setRoleTag(topRole, top);
+  setRoleTag(botRole, bot);
+
+  var topHand = document.getElementById('top-hand');
+  topHand.innerHTML = '';
+  if (G.hands[top].length === 0) topHand.innerHTML = '<span class="hand-empty">手牌已空</span>';
+  else for (var i=0;i<G.hands[top].length;i++) topHand.insertAdjacentHTML('beforeend', backHTML());
+
+  var botHand = document.getElementById('bot-hand');
+  botHand.innerHTML = '';
+  var clickable = isHumanTurn();
+  if (G.hands[bot].length === 0) botHand.innerHTML = '<span class="hand-empty">手牌已空</span>';
+  for (var j=0;j<G.hands[bot].length;j++){
+    var c = G.hands[bot][j];
+    botHand.insertAdjacentHTML('beforeend', cardHTML(c, { selected: G.sel.indexOf(c.id) >= 0, clickable: clickable }));
+  }
+  document.getElementById('side-bottom').className = 'side' + (isHumanTurn() ? ' active' : '');
+  document.getElementById('side-top').className = 'side';
+
+  renderSlots(); renderBanner(); renderCounts(); renderActions(); renderLog(); renderHandoff();
+}
+/* 牌库推演面板 —— 只用自己的信息推算，绝不泄露任何底牌 */
+function renderCounts(){
+  var el = document.getElementById('counts');
+  if (!el) return;
+  if (!G || G.phase === PHASE.OVER || G.phase === PHASE.REVEAL){ el.innerHTML = ''; return; }
+  var me = (G.mode === 'ai') ? 0 : G.actor;
+  var order = ['soldier','archer','mage','cannon','shield','magicShield','assassin','spy','junk'];
+  var html = '<span class="t">牌库推演 · 每张牌「最多还有几张可能在对方手里」</span>';
+  for (var i=0;i<order.length;i++){
+    var k = order[i], info = CARD_INFO[k];
+    var a = availToOpponent(k, me);
+    var cls = a === 0 ? ' zero' : (a <= 1 ? ' low' : '');
+    html += '<span class="k'+cls+'">'+esc(info.name)+' <b>≤'+a+'</b></span>';
+  }
+  el.innerHTML = html;
+}
+function setRoleTag(el, p){
+  if (G.phase === PHASE.REVEAL || G.phase === PHASE.OVER){ el.className = 'ptag role hidden'; return; }
+  var role = (p === G.attacker) ? '进攻方' : '防守方';
+  el.textContent = role;
+  el.className = 'ptag role';
+}
+function renderSlots(){
+  var el = document.getElementById('slots');
+  var html = '';
+  if (G.plays.length === 0){
+    el.innerHTML = '<div class="slot empty"><div class="s-who">等待攻方出牌并声明</div><div class="s-cards"></div></div>';
+    return;
+  }
+  var lead = G.plays[0];
+  for (var i=0;i<G.plays.length;i++){
+    var p = G.plays[i];
+    var isAtk = (p.by === lead.by);
+    var truth = isTruthful(p);
+    var cs = playCards(p);
+    /* 只有两种情况能看到底牌：被质疑（翻牌定生死），或被刺客潜入查证 */
+    var peeked = (p.peekedBy !== undefined);
+    var show = p.revealed || peeked;
+    var cards = '';
+    for (var c=0;c<cs.length;c++){
+      cards += show ? cardHTML(cs[c], { mini:true }) : backHTML(true);
+    }
+    var declCls = 's-decl';
+    var declTxt = '声明「<b>'+esc(p.declaredName)+' ×'+p.declaredCount+'</b>」';
+    if (p.revealed){
+      declTxt += truth ? ' · 属实' : ' · 撒谎（实为 '+esc(realNamesOf(p))+'）';
+      declCls += truth ? ' truth' : ' lie';
+    } else if (peeked){
+      declTxt += truth ? ' · 刺客查证：属实' : ' · 刺客查证：撒谎（实为 '+esc(realNamesOf(p))+'）';
+      declCls += truth ? ' truth' : ' lie';
+    }
+    html += '<div class="slot">' +
+        '<div class="s-who"><span>'+esc(pname(p.by))+'</span><span class="s-role '+(isAtk?'atk':'def')+'">'+(isAtk?'进攻':'应对')+'</span></div>' +
+        '<div class="s-cards">'+cards+'</div>' +
+        '<div class="'+declCls+'">'+declTxt+'</div>' +
+      '</div>';
+  }
+  if (G.plays.length < 3 && G.phase !== PHASE.REVEAL && G.phase !== PHASE.OVER){
+    html += '<div class="slot empty"><div class="s-who">等待应对</div><div class="s-cards"></div></div>';
+  }
+  el.innerHTML = html;
+}
+function renderBanner(){
+  var el = document.getElementById('banner');
+  if (G.gameOverInfo){
+    el.innerHTML = '<div class="banner '+(G.gameOverInfo.challenged?'bad':'ok')+'">' +
+      '<span class="head">本局结束</span><b>'+esc(pname(G.gameOverInfo.winner))+' 获胜</b> — '+esc(G.gameOverInfo.reason) +
+      '</div>';
+    return;
+  }
+  if (G.phase === PHASE.REVEAL && G.resultLines){
+    el.innerHTML = '<div class="banner info"><span class="head">结算</span>' +
+      G.resultLines.lines.join('<br>') + '</div>';
+    return;
+  }
+  el.innerHTML = '';
+}
+function renderActions(){
+  var el = document.getElementById('actions');
+  if (G.over || G.gameOverInfo){
+    el.innerHTML = '<div class="prompt">本局结束。</div><div class="btnrow">' +
+      '<button class="btn primary" data-act="restart">再来一局</button>' +
+      '<button class="btn" data-act="rules">查看规则</button></div>';
+    return;
+  }
+  if (G.phase === PHASE.REVEAL){
+    el.innerHTML = '<div class="prompt">结算完成。</div><div class="btnrow">' +
+      '<button class="btn primary" data-act="next">继续 →</button></div>';
+    return;
+  }
+  if (!isHumanTurn()){
+    el.innerHTML = '<div class="prompt">'+esc(pname(G.actor))+' 正在思考…</div>';
+    return;
+  }
+  var sel = selectedCards();
+  var html = '';
+
+  if (G.phase === PHASE.LEAD){
+    html += '<div class="prompt">你是 <b>进攻方</b>。选任意几张牌（可以混着选），然后<b>声明</b>它们是同一种牌。<br>' +
+      '结算完全按声明算 —— 底下是什么牌不影响抢点，只影响对方质疑时的判定，而结算本身<b>不会翻开底牌</b>。</div>';
+    html += declPicker(sel, 'attacker');
+    html += '<div class="btnrow"><button class="btn primary" data-act="lead">出牌</button>';
+    if (G.hands[G.actor].length === 0) html += '<button class="btn" data-act="pass">空过</button>';
+    html += '</div>';
+  } else if (G.phase === PHASE.DEFEND){
+    var leadP = G.plays[0];
+    html += '<div class="prompt">你是 <b>防守方</b>。对方声明了「<b>'+esc(leadP.declaredName)+' ×'+leadP.declaredCount+'</b>」。</div>';
+    html += lieHintHTML(leadP, G.actor);
+    html += declPicker(sel, 'defender');
+    html += '<div class="btnrow">' +
+      '<button class="btn danger" data-act="challenge">质疑</button>' +
+      '<button class="btn primary" data-act="play">出牌应对</button>' +
+      '<button class="btn" data-act="fold">认赔</button></div>';
+  } else if (G.phase === PHASE.COUNTER){
+    var lastP = G.plays[G.plays.length-1];
+    html += '<div class="prompt">对方应对时声明了「<b>'+esc(lastP.declaredName)+' ×'+lastP.declaredCount+'</b>」。</div>';
+    html += lieHintHTML(lastP, G.actor);
+    html += '<div class="btnrow">' +
+      '<button class="btn danger" data-act="challenge">质疑</button>' +
+      '<button class="btn primary" data-act="accept">接受结算</button></div>';
+  }
+  if (G.flashMsg) html += '<div class="prompt"><span class="err">'+esc(G.flashMsg)+'</span></div>';
+  el.innerHTML = html;
+}
+/* 质疑前的数牌推演 —— 让人也能像 AI 一样「指出逻辑错误」 */
+function lieHintHTML(play, me){
+  var key = ALL_KEY_BY_NAME[play.declaredName];
+  if (!key) return '';
+  var copies = CARD_INFO[key].copies;
+  var avail = availToOpponent(key, me);
+  var n = play.declaredCount;
+  if (n > avail){
+    var knownCount = copies - avail;
+    return '<div class="readline bad">数牌推演：<b>'+esc(play.declaredName)+'</b> 全库 '+copies+' 张' +
+      (knownCount > 0 ? '，其中至少 <b>'+knownCount+'</b> 张在你手上' : '') +
+      ' —— 他<b>不可能</b>拿出 '+n+' 张。这是逻辑错误，质疑必胜。</div>';
+  }
+  var pT = pTruthful(play, me);
+  return '<div class="readline">数牌推演：<b>'+esc(play.declaredName)+'</b> 全库 '+copies+
+    ' 张，最多还有 <b>'+avail+'</b> 张不在你手上；他一次要 '+n+
+    ' 张 —— 数牌<b>证伪不了</b>。按牌库构成估算，他真凑得出这 '+n+' 张的概率只有约 <b>'+
+    Math.round(pT * 100)+'%</b>。质疑赢了直接赢整局，输了直接输整局，自己掂量。</div>';
+}
+function declPicker(sel, role){
+  if (!sel || sel.length === 0) return '';
+  var names = declNamesFor(sel, role);
+  if (names.length === 0){
+    var hint = hasSpyMixed(sel)
+      ? '间谍只能单出 —— 不能和其他牌混成一叠'
+      : '这些牌在这个阶段不能打出';
+    return '<div class="prompt"><span class="err">'+hint+'</span></div>';
+  }
+  var counts = {}, actual = [], hasSpy = false, hasAssassin = false;
+  for (var i=0;i<sel.length;i++){
+    counts[CARD_INFO[sel[i].key].name] = (counts[CARD_INFO[sel[i].key].name] || 0) + 1;
+    actual.push(CARD_INFO[sel[i].key].name);
+    if (sel[i].key === 'spy') hasSpy = true;
+    if (sel[i].key === 'assassin') hasAssassin = true;
+  }
+  var cur = (G.declName && names.indexOf(G.declName) >= 0) ? G.declName : names[0];
+  var willBeTrue = true;
+  for (var j=0;j<sel.length;j++){
+    if (sel[j].key === 'spy') continue;
+    if (CARD_INFO[sel[j].key].name !== cur) { willBeTrue = false; break; }
+  }
+
+  var html = '<div class="decl-pick"><span class="lbl">声明为</span>';
+  for (var n=0;n<names.length;n++){
+    var nm = names[n];
+    html += '<button class="chip'+(nm === cur ? ' on' : '')+'" data-decl="'+esc(nm)+'">'+esc(nm)+
+      (counts[nm] ? '<span class="cnt">×'+counts[nm]+'</span>' : '')+'</button>';
+  }
+  html += '</div>';
+
+  if (hasSpy){
+    html += '<div class="prompt"><span class="warn">这张是间谍 —— 只能单出，但可以当成<b>任何牌</b>使用：' +
+      '本次声明恒为真，谁来质疑谁出局。</span></div>';
+  } else if (willBeTrue){
+    html += '<div class="prompt">声明与底牌一致 —— 对方一质疑，他自己就出局。</div>';
+  } else {
+    html += '<div class="prompt"><span class="warn">你在撒谎：底牌实际是「'+esc(actual.join('、'))+
+      '」，却声明「'+esc(cur)+'」。对方质疑并翻开，你直接出局；没人质疑，就按「'+esc(cur)+
+      '」结算 —— 而结算<b>不会</b>替你把牌翻开。</span></div>';
+  }
+  if (hasAssassin){
+    html += '<div class="prompt"><span class="warn">这叠里有<b>刺客</b>：只要没人质疑，结算时它会悄悄潜入' +
+      '查对方的底牌，对方声明属实就再多夺 1 点。代价是 —— 混了刺客，这一叠的身份就对不上声明了。</span></div>';
+  }
+  return html;
+}
+function renderLog(){
+  var el = document.getElementById('logbox');
+  var out = [];
+  var start = Math.max(0, G.log.length - 40);
+  for (var i=start;i<G.log.length;i++) out.push('<div class="l">'+G.log[i]+'</div>');
+  el.innerHTML = out.join('');
+  el.scrollTop = el.scrollHeight;
+}
+function renderHandoff(){
+  var ov = document.getElementById('handoff');
+  if (!ov) return;
+  var need = (G.mode === 'hotseat' && G.handoffFor !== null && G.handoffFor !== undefined && !G.over && !G.gameOverInfo);
+  if (!need){ ov.className = 'overlay hidden'; ov.innerHTML = ''; return; }
+  if (!ov.classList.contains('hidden')) return;
+  ov.innerHTML = '<div class="modal"><h2>请把设备交给 ' + esc(pname(G.handoffFor)) + '</h2>' +
+    '<p>确认后才会显示这一方的手牌。<br>另一位玩家请先回避。</p>' +
+    '<div class="btnrow" style="justify-content:center"><button class="btn primary" data-handoff-ok="1">我准备好了</button></div></div>';
+  ov.className = 'overlay';
+  var b = ov.querySelector('[data-handoff-ok]');
+  if (b) b.addEventListener('click', function(){
+    G.handoffFor = null;
+    ov.className = 'overlay hidden'; ov.innerHTML = '';
+    render();
+  });
+}
+
+/* =========================================================
+   事件
+   ========================================================= */
+document.addEventListener('click', function(e){
+  var t = e.target;
+  if (!t || !t.closest) return;
+
+  var modeBtn = t.closest('#modes button');
+  if (modeBtn){
+    var m = modeBtn.getAttribute('data-mode');
+    if (G && G.mode === m) return;
+    document.querySelectorAll('#modes button').forEach(function(b){ b.classList.remove('on'); });
+    modeBtn.classList.add('on');
+    showModal('切换模式', '要重新开始一局吗？当前进度会丢失。', [
+      { label:'重新开始', primary:true, fn:function(){ closeModal(); newGame(m); } },
+      { label:'取消', fn:function(){ closeModal(); syncModeButtons(); } }
+    ]);
+    return;
+  }
+  if (t.closest('#btn-rules')){ showRules(); return; }
+  if (t.closest('#btn-restart')){
+    showModal('重开一局','当前进度会丢失。',[
+      { label:'重新开始', primary:true, fn:function(){ closeModal(); newGame(G.mode); } },
+      { label:'取消', fn:closeModal }
+    ]);
+    return;
+  }
+
+  var decl = t.closest('[data-decl]');
+  if (decl){ G.declName = decl.getAttribute('data-decl'); render(); return; }
+
+  var cardEl = t.closest('.card[data-card]');
+  if (cardEl && isHumanTurn()){
+    var id = cardEl.getAttribute('data-card');
+    var idx = G.sel.indexOf(id);
+    if (idx >= 0) G.sel.splice(idx,1); else G.sel.push(id);
+    var sel = selectedCards();
+    var names = declNamesFor(sel, phaseRole());
+    if (names.indexOf(G.declName) < 0) G.declName = names.length ? names[0] : null;
+    render();
+    return;
+  }
+
+  var act = t.closest('[data-act]');
+  if (act){
+    var a = act.getAttribute('data-act');
+    if (a === 'restart'){ newGame(G.mode); return; }
+    if (a === 'rules'){ showRules(); return; }
+    if (a === 'next'){ nextHand(); return; }
+    if (a === 'lead'){ doLead(); return; }
+    if (a === 'pass'){ doPass(); return; }
+    if (a === 'fold'){ doDefend('fold'); return; }
+    if (a === 'play'){ G.phase === PHASE.DEFEND ? doDefend('play') : doCounter('play'); return; }
+    if (a === 'challenge'){ doChallenge(); return; }
+    if (a === 'accept'){ doCounter('accept'); return; }
+  }
+});
+
+/* =========================================================
+   弹窗
+   ========================================================= */
+function closeModal(){ var o = document.getElementById('overlay'); o.className = 'overlay hidden'; o.innerHTML=''; }
+function showModal(title, text, buttons){
+  var ov = document.getElementById('overlay');
+  var html = '<div class="modal"><h2>'+esc(title)+'</h2><p>'+esc(text)+'</p><div class="btnrow" style="justify-content:center">';
+  for (var i=0;i<buttons.length;i++) html += '<button class="btn '+(buttons[i].primary?'primary':'')+'" data-mbtn="'+i+'">'+esc(buttons[i].label)+'</button>';
+  html += '</div></div>';
+  ov.innerHTML = html;
+  ov.className = 'overlay';
+  var list = ov.querySelectorAll('[data-mbtn]');
+  for (var j=0;j<list.length;j++){
+    (function(j){ list[j].addEventListener('click', function(){ buttons[j].fn(); }); })(j);
+  }
+}
+function syncModeButtons(){
+  document.querySelectorAll('#modes button').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-mode') === G.mode);
+  });
+}
+function showRules(){
+  var ov = document.getElementById('overlay');
+  var rows = '';
+  for (var k in CARD_INFO){
+    if (!Object.prototype.hasOwnProperty.call(CARD_INFO,k)) continue;
+    var c = CARD_INFO[k];
+    rows += '<tr><td><b>'+esc(c.name)+'</b></td><td>'+esc(CAT_LABEL[c.cat])+'</td><td>'+c.copies+'</td><td>'+esc(c.eff)+'</td></tr>';
+  }
+  ov.innerHTML = '<div class="modal rules"><h2>Liar Card 规则</h2>' +
+    '<div class="key">一句话：<b>出牌时嘴上说的算数，底下的牌只是证据。</b>' +
+    '没人质疑就按声明结算，而结算<b>不会翻开底牌</b> —— 想验证真伪，只有质疑一条路。</div>' +
+    '<h3>1 · 目标</h3><ul>' +
+      '<li>先手 <b>3 点</b>，后手 <b>4 点</b>，共 7 个战略点，<b>零和转移</b></li>' +
+      '<li>把对方战略点打到 <b>0</b> → 获胜</li>' +
+      '<li>任意一方<b>被翻开证明撒谎</b> → 该方立即输掉整局</li>' +
+    '</ul>' +
+    '<h3>2 · 一轮的结构</h3><ol>' +
+      '<li>先手先攻，双方各进攻一次为一轮</li>' +
+      '<li><b>进攻方</b>：打出任意几张牌（可以混牌），同时<b>声明</b>它们是同一种攻击牌</li>' +
+      '<li><b>防守方</b>三选一：<b>质疑</b> / <b>出牌应对并声明防守牌</b> / <b>认赔</b></li>' +
+      '<li>防守方出牌后，进攻方可以<b>质疑</b>，也可以接受结算</li>' +
+      '<li>全程无人质疑 → <b>按声明结算</b>，双方底牌依旧面朝下收走</li>' +
+    '</ol>' +
+    '<h3>3 · 声明的规则</h3><ul>' +
+      '<li>一叠牌<b>只能声明一个牌名</b>，但牌可以混着出</li>' +
+      '<li>声明几张，就必须打出几张 —— <b>张数不能撒谎</b></li>' +
+      '<li>进攻方只能声明攻击牌（士兵 / 弓箭手 / 法师 / 炮手）</li>' +
+      '<li>防守方只能声明防守牌（盾卫 / 法盾）</li>' +
+      '<li>中立牌（刺客 / 间谍 / 墨条）<b>不能声明</b>，只能混在牌堆里</li>' +
+    '</ul>' +
+    '<h3>4 · 结算（只看声明，不翻牌）</h3><ul>' +
+      '<li>进攻方声明 <b>士兵 / 弓箭手 ×N</b> → 抢 N 点</li>' +
+      '<li>进攻方声明 <b>法师 ×N</b> → 抢 <b>2N</b> 点</li>' +
+      '<li>进攻方声明 <b>炮手 ×N</b> → 抢 N 点，<b>无视防御</b></li>' +
+      '<li>防守方声明 <b>盾卫 ×M</b> → 抵消 M 张士兵/弓箭手（1:1）</li>' +
+      '<li>防守方声明 <b>法盾 ×M</b> → 抵消 M 张法师（1:1）</li>' +
+      '<li>穿透的牌才得分，抢到的点从对方手里扣</li>' +
+      '<li><b>底牌一张都不翻</b> —— 结算只认明面上的声明</li>' +
+    '</ul>' +
+    '<h3>5 · 质疑（唯一能看到底牌的常规手段）</h3><ul>' +
+      '<li>翻开那一叠牌，逐张核对声明</li>' +
+      '<li><b>完全属实</b> → 质疑者输掉整局</li>' +
+      '<li><b>有任何不符</b> → 出牌者输掉整局</li>' +
+      '<li>每次出牌只有一次质疑机会，不能被反质疑</li>' +
+      '<li><b>数牌是硬道理</b>：牌库只有 1 张炮手，你自己手上就有 1 张 → 对方声明「炮手 ×1」必是假的，质疑必胜</li>' +
+    '</ul>' +
+    '<h3>6 · 中立牌</h3><ul>' +
+      '<li><b>间谍 ×1</b>：<b>只能单出一张</b>，但可以当成<b>任何牌</b>使用 —— 声明恒为真，谁来质疑谁出局</li>' +
+      '<li><b>刺客 ×1</b>：<b>混在攻击/防守牌堆里</b>悄悄打出。若全程无人质疑，结算时它潜入查牌，' +
+        '看到对方底牌；对方声明<b>属实</b> → 再夺 <b>1 点</b>，不实 → 不夺点（但你知道了他在撒谎）。' +
+        '代价：混了刺客，这一叠的身份就对不上声明了</li>' +
+      '<li><b>墨条 ×1</b>：废卡，没有任何效果，只能当垫牌虚张声势</li>' +
+    '</ul>' +
+    '<h3>7 · 手牌与信息</h3><ul>' +
+      '<li>共用 <b>20 张</b>牌库；开局各抽 4 张；<b>打出后立即补至 4 张</b></li>' +
+      '<li>出过的牌面朝下进弃牌堆 —— <b>弃牌堆是匿名的</b>，谁都数不出里面是什么</li>' +
+      '<li>所以能确定的只有：<b>自己手上的牌</b> + <b>本轮自己摊在桌上的牌</b>。其余全是不确定</li>' +
+      '<li>牌库抽空时弃牌堆洗回</li>' +
+    '</ul>' +
+    '<h3>8 · AI 在想什么</h3><ul>' +
+      '<li><b>先算账</b>：用「自己手牌 + 本轮自己摊在桌上的牌」推算你最多能拿出几张</li>' +
+      '<li>你要的张数超过这个上限 → <b>逻辑错误，必抓</b>，不看局势、不讲情面</li>' +
+      '<li><b>再算概率</b>：凑 1 张士兵约 73%、2 张约 24%、2 张法师约 5%、3 张士兵约 3%</li>' +
+      '<li><b>2 点及以下的小威胁不赌</b>；<b>自己领先 2 点以上也不赌</b></li>' +
+      '<li>落后 2 点以上、或点数快归零时更愿意搏；五五开就不出手</li>' +
+      '<li>AI 也会把刺客混进自己的牌堆偷看你的底牌 —— 被看过一次，它就记住你诚不诚实</li>' +
+    '</ul>' +
+    '<h3>牌表</h3><table><tr><th>牌</th><th>类别</th><th>数量</th><th>效果</th></tr>'+rows+'</table>' +
+    '<div class="btnrow" style="justify-content:center;margin-top:20px"><button class="btn primary" data-mbtn="0">知道了</button></div>' +
+  '</div>';
+  ov.className = 'overlay';
+  var b = ov.querySelector('[data-mbtn]');
+  if (b) b.addEventListener('click', closeModal);
+}
+
+newGame('ai');
+</script>
+<script>
+/* ---------------------------------------------------------
+   鼠标向量 → CSS 变量
+   ---------------------------------------------------------
+   对应库里的 InteractiveHighlight + DampedDragAnimation：
+   那两个类做的就是把「指针位置 / 按压进度」折算成图层形变与高光位置。
+   网页版的等价物就是往卡片上写三个自定义属性：
+     --lg-mx / --lg-my   高光中心（像素）
+     --lg-rx / --lg-ry   由「卡片中心 → 指针」向量折算的倾角
+     --lg-scale          按压缩放
+   形变本身交给 CSS 的 transition 去做，就是那种阻尼跟随的手感。
+
+   为什么用事件委托而不是逐张绑定：renderAll() 一直在用 innerHTML
+   重建卡片，逐张绑定会被重建冲掉，委托在 document 上不受影响。
+   --------------------------------------------------------- */
+(function(){
+  if (!window.matchMedia) return;
+  // 触屏没有"悬停"这回事，reduced-motion 用户也不该收到会动的光。
+  if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+
+  var cur = null;
+
+  function reset(el){
+    if (!el) return;
+    el.style.removeProperty('--lg-mx');
+    el.style.removeProperty('--lg-my');
+    el.style.removeProperty('--lg-rx');
+    el.style.removeProperty('--lg-ry');
+  }
+
+  function cardOf(e){
+    var t = e.target;
+    return (t && t.closest) ? t.closest('.card') : null;
+  }
+
+  document.addEventListener('pointermove', function(e){
+    var el = cardOf(e);
+    if (el !== cur){ reset(cur); cur = el; }
+    if (!el) return;
+
+    var r = el.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+
+    var x = e.clientX - r.left, y = e.clientY - r.top;
+    el.style.setProperty('--lg-mx', x.toFixed(1) + 'px');
+    el.style.setProperty('--lg-my', y.toFixed(1) + 'px');
+
+    // 归一化到 ±1，再折算成很小的倾角：牌会朝指针方向轻轻抬起来一点。
+    var nx = (x - r.width / 2) / (r.width / 2);
+    var ny = (y - r.height / 2) / (r.height / 2);
+    el.style.setProperty('--lg-ry', (nx * 7).toFixed(2) + 'deg');
+    el.style.setProperty('--lg-rx', (-ny * 7).toFixed(2) + 'deg');
+  }, {passive:true});
+
+  // 按压：库里 InteractiveHighlight 是把图层放大 lerp(1, 1 + 4dp / height, p)，
+  // 92px 高的牌算下来约 1.043。这里由 CSS 的 transform transition 补出动画。
+  document.addEventListener('pointerdown', function(e){
+    var el = cardOf(e);
+    if (el) el.style.setProperty('--lg-scale', '1.045');
+  });
+
+  function release(){
+    var hit = document.querySelectorAll('.card[style*="--lg-scale"]');
+    for (var i = 0; i < hit.length; i++) hit[i].style.removeProperty('--lg-scale');
+  }
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
+  window.addEventListener('blur', function(){ release(); reset(cur); cur = null; });
+
+  // 指针离开窗口（不是离开某张牌）时把高光收掉，避免停在最后一张牌上。
+  document.addEventListener('pointerout', function(e){
+    if (!e.relatedTarget){ reset(cur); cur = null; }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# 换行符策略：仓库里一律存 LF，只在检出到 Windows 工作区时才转 CRLF。
+# 不加这个文件的话，Git 每次都会提示 "LF will be replaced by CRLF"，
+# 而且协作/换机器时会产生「什么都没改但整个文件都变了」的假 diff
+# —— README §九 记过同类坑（build_site.py 用 read_bytes 就是为了避开它）。
+* text=auto eol=lf
+
+# 二进制资源：绝不参与换行符转换与 diff 文本化
+*.webp  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.ico   binary
+*.woff2 binary
+*.woff  binary
+*.ttf   binary
+*.otf   binary
+*.zip   binary
+
+# 生成物不必在 diff 里刷屏
+data/gallery.json      linguist-generated
+data/palette-pool.json linguist-generated
+assets/css/fonts.css   linguist-generated

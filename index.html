@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-bucket="warm">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Auxia的个人小站</title>
+<meta name="description" content="Auxia 的个人网站：大五人格自画像、摄影与动漫 / 音乐 / 书籍 / 游戏五面展墙、在建项目与联系方式。二次元日系美学，干净、明亮、有空气感。">
+<meta name="author" content="Auxia">
+<meta name="theme-color" content="#fdf8f2">
+<link rel="canonical" href="{{ORIGIN}}/">
+
+<!-- Open Graph / 爬虫不执行 JS，这些标签必须写死 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Auxia">
+<meta property="og:title" content="Auxia · 个人站">
+<meta property="og:description" content="大五人格自画像 · 五面展墙 · 在建项目。二次元日系美学，干净、明亮、有空气感。">
+<meta property="og:url" content="{{ORIGIN}}/">
+<meta property="og:image" content="{{ORIGIN}}/assets/img/icons/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Auxia · 个人站">
+<meta name="twitter:description" content="大五人格自画像 · 五面展墙 · 在建项目。">
+<meta name="twitter:image" content="{{ORIGIN}}/assets/img/icons/og-cover.png">
+
+<link rel="icon" href="./assets/img/icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="./assets/img/icons/favicon.svg">
+<link rel="apple-touch-icon" href="./assets/img/icons/apple-touch-icon.png">
+<link rel="manifest" href="./manifest.webmanifest">
+
+<!-- font-preload -->
+<link rel="preload" href="assets/fonts/body-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/logo-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/smiley/smiley-25.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/smiley/smiley-16.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/smiley/smiley-06.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/smiley/smiley-01.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/smiley/smiley-04.woff2" as="font" type="font/woff2" crossorigin>
+<!-- font-preload -->
+
+<link rel="stylesheet" href="./assets/css/variables.css">
+<link rel="stylesheet" href="./assets/css/fonts.css">
+<link rel="stylesheet" href="./assets/css/site.css">
+</head>
+
+<body data-bucket="warm" data-root="./">
+<a class="skip" href="#main">跳到主内容</a>
+
+<!-- 图层 1：氛围插画（轻度模糊）。取图失败会落到本地摄影，绝不开天窗 -->
+<div id="bg" aria-hidden="true">
+  <img class="bg-img" alt="">
+  <div class="veil"></div>
+  <div class="credit" hidden></div>
+</div>
+
+<!-- 图层 2：弹幕 slogan -->
+<div id="danmaku" aria-hidden="true"></div>
+
+<!-- 图层 3：点击粒子 -->
+<div id="particles" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="./"><span class="dot"></span>auxia</a>
+    <div class="nav-links">
+      <a href="#intro">自我介绍</a>
+      <a href="#walls">展墙</a>
+      <a href="#projects">项目</a>
+      <a href="./gallery/">查看全部展品</a>
+      <a href="#contact">联系方式</a>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+  <!-- ==================== 开屏 ==================== -->
+  <section class="splash">
+    <div class="wrap splash-grid">
+
+      <!-- 左：打字机标题。
+           文案在 HTML 里就是完整的（爬虫 / 无 JS / 屏幕阅读器都读得到），
+           JS 负责把它清空再逐字敲回来 —— 这叫「渐进增强」，
+           反过来（HTML 留空、靠 JS 填）会让禁用 JS 的人看到一片空白。
+           行分隔符用 | ：竖线不会出现在任何一行文案里。 -->
+      <div class="splash-copy">
+        <h1 class="splash-title" id="splash-title"
+            data-lines="I'm Auxia,|welcome to my website！">
+          <span class="st-row"><span class="st-text">I'm Auxia,</span></span>
+          <span class="st-row"><span class="st-text">welcome to my website！</span></span>
+        </h1>
+      </div>
+
+      <!-- 右：布朗运动小演示。分子乱走，指针给力。
+           canvas 是纯装饰（信息全在 hint 里），所以整个 aria-hidden。 -->
+      <div class="splash-demo">
+        <canvas id="brownian" aria-hidden="true"></canvas>
+        <p class="demo-hint">
+          <span class="dot" aria-hidden="true"></span>
+          
+        </p>
+      </div>
+
+    </div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span class="bar"></span>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- ==================== 自我介绍 ==================== -->
+  <section class="sec" id="intro">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="sec-num">01</span>
+        <h2>自我介绍</h2>
+      </div>
+
+      <!-- 上下两个整宽区块：人格卡横铺在上，爱好一排跟在下。
+           原先是「左爱好 / 右人格卡」两栏，删掉自述文字后左栏太空。 -->
+      <div class="intro-stack">
+
+        <div class="card pentagon-card reveal">
+          <div class="penta-head">
+            <h3>Big Five</h3>
+            <div class="sub">五边形示意图</div>
+          </div>
+          <div class="penta-body">
+            <div class="penta-figure" id="pentagon">
+              <noscript><p>开启 JavaScript 后显示五边形雷达图。分值：开放性 65%、尽责性 70%、外向性 43%、宜人性 65%、神经质 13%。</p></noscript>
+            </div>
+            <div class="b5-legend" id="b5-legend"></div>
+          </div>
+        </div>
+
+        <div class="hobbies reveal">
+          <span class="hobby"><span class="ico" aria-hidden="true">🎨</span><span class="hb"><b>画画</b><small>Drawing</small></span></span>
+          <span class="hobby"><span class="ico" aria-hidden="true">⌨️</span><span class="hb"><b>开发</b><small>Coding</small></span></span>
+          <span class="hobby"><span class="ico" aria-hidden="true">🎹</span><span class="hb"><b>钢琴</b><small>Piano</small></span></span>
+          <span class="hobby"><span class="ico" aria-hidden="true">🎮</span><span class="hb"><b>玩游戏</b><small>Gaming</small></span></span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 展墙橱窗 ==================== -->
+  <section class="sec" id="walls">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="sec-num">02</span>
+        <h2>展墙</h2>
+        <span class="desc" id="showcase-total">随机展示</span>
+      </div>
+
+      <div class="walls-toolbar reveal">
+        <button class="btn primary" id="shuffle" type="button">
+          换一批 <span class="arw" aria-hidden="true">↻</span>
+        </button>
+        <a class="btn" href="./gallery/">
+          查看全部展品 <span class="arw" aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <div id="wall-showcase" class="reveal">
+        <noscript><p>展墙橱窗需要 JavaScript。全部展品同样可以直接访问 <a href="./gallery/">展墙总页</a>。</p></noscript>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 项目 ==================== -->
+  <section class="sec" id="projects">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="sec-num">03</span>
+        <h2>项目</h2>
+        <span class="desc">程序还没做完，先把门牌挂上</span>
+      </div>
+
+      <div class="proj-grid reveal">
+        <a class="card proj" href="./projects/liar-game/">
+          <span class="tag">Project · Game</span>
+          <h3>LIAR GAME</h3>
+          <p>把「读人」做成玩法：谎言、下注与被看穿的瞬间，都是可计算的。</p>
+          <span class="foot"><span class="status">开发中</span><span class="go">进入 <span class="arw" aria-hidden="true">→</span></span></span>
+        </a>
+        <a class="card proj" href="./projects/starcraft3/">
+          <span class="tag">Project · Mod</span>
+          <h3>STAR CRAFT III</h3>
+          <p>在经典 RTS 的骨架里，找到静态博弈的学问。</p>
+          <span class="foot"><span class="status">开发中</span><span class="go">进入 <span class="arw" aria-hidden="true">→</span></span></span>
+        </a>
+        <a class="card proj" href="./projects/qika/">
+          <span class="tag">Project · Boardgame</span>
+          <h3>棋卡</h3>
+          <p>棋盘是棋盘，牌是牌，能不能让它们共用同一套判断？</p>
+          <span class="foot"><span class="status">开发中</span><span class="go">进入 <span class="arw" aria-hidden="true">→</span></span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 联系方式 ==================== -->
+  <section class="sec" id="contact">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="sec-num">04</span>
+        <h2>联系方式</h2>
+        <span class="desc">点一下才展开，25 秒后自动收起</span>
+      </div>
+
+      <div class="contact-grid reveal">
+        <button class="card contact-card" type="button" data-contact="qq" aria-label="展开 QQ 号">
+          <span class="label">QQ</span>
+          <span class="value masked">••••••••</span>
+          <span class="hint">日常联系</span>
+          <span class="copy">再次点击可收起</span>
+        </button>
+        <button class="card contact-card" type="button" data-contact="wx" aria-label="展开微信号">
+          <span class="label">WeChat</span>
+          <span class="value masked">••••••••</span>
+          <span class="hint">加我请说明来意</span>
+          <span class="copy">再次点击可收起</span>
+        </button>
+        <a class="card contact-card" href="https://github.com/AuxiaOfficial" target="_blank" rel="noopener noreferrer">
+          <span class="label">GitHub</span>
+          <span class="value">AuxiaOfficial <span class="ext" aria-hidden="true">→</span></span>
+          <span class="hint">源码与项目</span>
+          <span class="copy">新标签页打开</span>
+        </a>
+      </div>
+
+      <p class="contact-note reveal">QQ 与微信为防止被爬虫直接抓走，默认不以明文形式出现在页面 DOM 里；GitHub 与网站源码本来就是公开的，直接可点。</p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <details class="legal">
+        <summary>素材来源与版权说明</summary>
+        <p>各页背景来自站主自备插画，已压缩为同站资源，版权归原画师所有，仅作非商业个人展示。摄影作品为作者自摄。动漫 / 游戏 / 音乐封面版权归各自发行方所有，此处仅作清单式索引，不提供任何下载。背景弹幕中一部分文案取自 <a href="https://hitokoto.cn/" target="_blank" rel="noopener noreferrer nofollow">一言（hitokoto.cn）</a>，版权归原作者所有 —— 这是本站唯一的外部网络请求，其余资源与数据全部同站自托管。站点不对任何素材主张权利，如权利人认为不妥，请联系我移除。</p>
+      </details>
+    </div>
+  </footer>
+
+</main>
+
+<noscript>
+  <div class="noscript-note">本页的背景插画、弹幕与点击粒子需要 JavaScript；正文内容无需 JavaScript 即可阅读。</div>
+</noscript>
+
+<script src="./assets/js/core.js"></script>
+<script src="./assets/js/tiles.js"></script>
+<script src="./assets/js/home.js"></script>
+<!-- 开屏专有：打字机 + 布朗运动。只有首页引它。 -->
+<script src="./assets/js/splash.js"></script>
+</body>
+</html>

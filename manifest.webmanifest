@@ -1,0 +1,27 @@
+{
+ "name": "Auxia 的个人小站",
+ "short_name": "Auxia",
+ "description": "大五人格自画像 · 五面展墙 · 在建项目",
+ "start_url": "/",
+ "display": "standalone",
+ "background_color": "#fdf8f2",
+ "theme_color": "#fdf8f2",
+ "icons": [
+  {
+   "src": "/assets/img/icons/avatar.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/assets/img/icons/apple-touch-icon.png",
+   "sizes": "180x180",
+   "type": "image/png"
+  },
+  {
+   "src": "/assets/img/icons/favicon.svg",
+   "sizes": "any",
+   "type": "image/svg+xml"
+  }
+ ]
+}

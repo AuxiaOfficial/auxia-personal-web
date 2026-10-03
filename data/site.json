@@ -1,0 +1,110 @@
+{
+  "en": {
+    "name": "Auxia",
+    "slug": "auxia",
+    "title": "Auxia · 个人站"
+  },
+
+  "sections": {
+    "intro": "自我介绍",
+    "walls": "展墙",
+    "projects": "项目",
+    "contact": "联系方式"
+  },
+
+  "bigfive": {
+    "title": "大五人格模型",
+    "note": "如实绘制，不做任何美化",
+    "dims": [
+      { "key": "openness",        "name": "开放性", "en": "Openness",          "value": 65 },
+      { "key": "conscientiousness","name": "尽责性", "en": "Conscientiousness", "value": 70 },
+      { "key": "extraversion",    "name": "外向性", "en": "Extraversion",      "value": 43 },
+      { "key": "agreeableness",   "name": "宜人性", "en": "Agreeableness",     "value": 65 },
+      { "key": "neuroticism",     "name": "神经质", "en": "Neuroticism",       "value": 13 }
+    ]
+  },
+
+  "hobbies": [
+    { "name": "画画", "en": "Drawing" },
+    { "name": "开发", "en": "Coding" },
+    { "name": "钢琴", "en": "Piano" },
+    { "name": "玩游戏", "en": "Gaming" }
+  ],
+
+  "banner": {
+    "lines": [
+      "Tech Otaku Save the World",
+      "当你在看着这句话时，这句话也在看着你",
+      "print(\"hello world\")",
+      "这是一个1.0时期的tip",
+      "awmc",
+      "XX，启动！",
+      "XX XXX XXXX XXX",
+      "我超，🧊",
+      "死亡是一个必然会降临的节日",
+      "飞鸟奋力欲破壳而出，蛋即世界，欲新生者必先摧毁世界",
+      "在隆冬，我终于知道，我身上有一个不可战胜的夏天",
+      "压路机来了！！！",
+      "还有40秒，还不能笑",
+      "我们都是阴沟里的虫子，但总还是得有人仰望星空",
+      "给时光以生命，给岁月以文明。",
+      "前进！前进！不择手段的前进！",
+      "当一个人不再寻找，他便找到了",
+      "1000-7=？",
+      "真由理的怀表怎么不转了？",
+      "你是容器，你是空洞骑士",
+      "犹豫，就会败北",
+      "蛋糕是个谎言",
+      "不要用力拍打机框哦",
+      "明月几时有，把酒问青天",
+      "云层深处的黑暗，淹没心底的景观"
+    ],
+
+    "hitokoto": {
+      "enabled": true,
+      "ratio": 0.85,
+      "maxLength": 48,
+      "categories": ["a", "c", "d", "e", "h", "i", "j", "k"]
+    }
+  },
+
+  "projects": [
+    {
+      "slug": "liar-game",
+      "title": "LIAR GAME",
+      "tag": "Project · Game",
+      "status": "开发中",
+      "summary": "把「读人」做成玩法：谎言、下注与被看穿的瞬间，都该是可计算的。",
+      "href": "./projects/liar-game/"
+    },
+    {
+      "slug": "starcraft3",
+      "title": "STAR CRAFT III",
+      "tag": "Project · Mod",
+      "status": "开发中",
+      "summary": "在经典 RTS 的骨架里，塞一份我自己的兵种与经济曲线。",
+      "href": "./projects/starcraft3/"
+    },
+    {
+      "slug": "qika",
+      "title": "棋卡",
+      "tag": "Project · Boardgame",
+      "status": "开发中",
+      "summary": "棋盘是棋盘，牌是牌，能不能让它们共用同一套判断？",
+      "href": "./projects/qika/"
+    }
+  ],
+
+  "contact": {
+    "note": "点一下才展开，25 秒后自动收起",
+    "_warning": "enc 是 Base64 —— 只是编码不是加密，一行就能还原。这个仓库是公开的，所以这里放的是占位值；真实值填回来看 data/.contact-real.json（已进 .gitignore）。",
+    "items": [
+      { "key": "qq", "label": "QQ", "hint": "日常联系", "enc": "MDAwMDAwMDAwMA==" },
+      { "key": "wx", "label": "微信", "hint": "加我请说明来意", "enc": "cGxlYXNlLXNldC1tZQ==" }
+    ]
+  },
+
+  "footer": {
+    "creditNote": "各页背景来自站主自备插画，已压缩为同站资源，版权归原画师所有，仅作非商业个人展示。动漫 / 游戏 / 音乐封面版权归各自发行方所有，此处仅作清单式索引，不提供任何下载。摄影作品为作者自摄。背景弹幕中一部分文案取自一言（hitokoto.cn），版权归原作者所有 —— 这是本站唯一的外部网络请求，其余资源与数据全部同站自托管。如权利人认为不妥，请联系我移除。"
+  }
+}

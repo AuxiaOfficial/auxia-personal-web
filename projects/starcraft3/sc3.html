@@ -1,0 +1,3345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星际争霸 III · 回合制博弈（同人二创）</title>
+<style>
+/* ================= 基础与主题 ================= */
+:root {
+  --bg-deep: #060913;
+  --bg-panel: rgba(18, 26, 48, 0.85);
+  --bg-panel-2: rgba(28, 38, 66, 0.75);
+  --line: rgba(108, 148, 224, 0.28);
+  --text: #d8e2f5;
+  --text-dim: #8a99b8;
+  --accent: #5ec8ff;       /* 水晶蓝 */
+  --accent-2: #a78bff;     /* 星灵紫 */
+  --gold: #ffd76e;         /* 水晶金 */
+  --red: #ff6b7a;
+  --green: #6ee7a0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(80, 60, 160, 0.25), transparent 60%),
+    radial-gradient(900px 500px at 90% 110%, rgba(30, 90, 160, 0.22), transparent 60%),
+    var(--bg-deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: auto;
+}
+#app { max-width: 1400px; margin: 0 auto; padding: 18px 26px 40px; min-width: 1024px; }
+
+/* 星点背景 */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 40px 60px, rgba(255,255,255,.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 160px 200px, rgba(255,255,255,.25) 50%, transparent 51%),
+    radial-gradient(2px 2px at 300px 90px, rgba(200,220,255,.30) 50%, transparent 51%),
+    radial-gradient(1px 1px at 480px 330px, rgba(255,255,255,.22) 50%, transparent 51%),
+    radial-gradient(1px 1px at 700px 150px, rgba(255,255,255,.30) 50%, transparent 51%),
+    radial-gradient(2px 2px at 900px 420px, rgba(200,220,255,.25) 50%, transparent 51%),
+    radial-gradient(1px 1px at 1100px 250px, rgba(255,255,255,.28) 50%, transparent 51%);
+}
+#app { position: relative; z-index: 1; }
+
+.screen { display: none; }
+.screen.active { display: block; animation: fadein .25s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+h1, h2, h3 { font-weight: 700; letter-spacing: .04em; }
+button {
+  font-family: inherit; cursor: pointer; border: 1px solid var(--line);
+  background: var(--bg-panel-2); color: var(--text); border-radius: 8px;
+  padding: 10px 22px; font-size: 15px; transition: all .15s ease;
+}
+button:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 0 12px rgba(94,200,255,.25); transform: translateY(-1px); }
+button:disabled { opacity: .38; cursor: not-allowed; }
+button.primary {
+  background: linear-gradient(135deg, rgba(94,200,255,.22), rgba(167,139,255,.25));
+  border-color: var(--accent); color: #eaf6ff; font-size: 18px; padding: 14px 48px;
+}
+button.ghost { background: transparent; }
+button.danger { border-color: rgba(255,107,122,.5); color: var(--red); }
+
+.panel {
+  background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 18px 22px; box-shadow: 0 6px 24px rgba(0,0,0,.35);
+}
+
+/* ================= 标题屏 ================= */
+#screen-title { text-align: center; padding-top: 6vh; }
+.game-title { font-size: 96px; color: #eaf6ff; text-shadow: 0 0 28px rgba(94,200,255,.55), 0 0 70px rgba(167,139,255,.4); }
+.game-title .t3 {
+  background: linear-gradient(180deg, var(--gold), #ff9d5c);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.subtitle { color: var(--text-dim); margin: 14px 0 54px; font-size: 18px; letter-spacing: .42em; }
+.mode-row { display: flex; gap: 22px; justify-content: center; margin-bottom: 34px; }
+.mode-btn { font-size: 27px; padding: 24px 66px; border-radius: 16px; position: relative; }
+.mode-btn.selected {
+  border-color: var(--gold); color: var(--gold);
+  background: linear-gradient(135deg, rgba(255,215,110,.12), rgba(255,157,92,.10));
+  box-shadow: 0 0 18px rgba(255,215,110,.25);
+}
+.ai-options {
+  display: none; margin: 0 auto 36px; width: 620px; text-align: left;
+  background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 26px; font-size: 17px;
+}
+.ai-options.visible { display: block; }
+.ai-options label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+.difficulty-row { display: flex; gap: 30px; margin-top: 14px; padding-left: 30px; }
+.difficulty-row label { font-size: 16px; }
+.title-actions { display: flex; gap: 18px; justify-content: center; margin-top: 14px; }
+.title-actions button { font-size: 17px; padding: 14px 36px; }
+.footnote { margin-top: 60px; color: var(--text-dim); font-size: 14px; }
+
+/* ================= 选人屏 ================= */
+#screen-select h2, #screen-copy h2, #screen-handoff h2, #screen-roster h2 { text-align: center; margin-bottom: 10px; font-size: 32px; }
+.select-hint { text-align: center; color: var(--text-dim); margin-bottom: 18px; font-size: 15.5px; }
+.char-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.char-card {
+  background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 15px 17px; cursor: pointer; transition: all .12s ease; position: relative;
+}
+.char-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.char-card.selected { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,215,110,.3); background: rgba(60,50,20,.35); }
+.char-card.disabled { opacity: .35; cursor: not-allowed; }
+.char-card .cc-head { display: flex; align-items: center; gap: 7px; font-size: 18px; font-weight: 700; }
+.char-card .cc-icon { font-size: 24px; }
+.char-card .cc-tier { font-size: 11px; color: var(--text-dim); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; margin-left: auto; }
+.char-card .cc-stats { display: flex; gap: 13px; margin-top: 8px; font-size: 14.5px; color: var(--text-dim); }
+.char-card .cc-stats b { color: var(--text); }
+.select-actions { display: flex; justify-content: center; gap: 18px; margin-top: 24px; }
+.select-actions button { font-size: 16px; padding: 12px 32px; }
+.lineup-strip { margin-top: 16px; text-align: center; font-size: 15.5px; color: var(--text-dim); }
+.lineup-strip b { color: var(--gold); }
+
+/* ================= 交接屏 ================= */
+#screen-handoff { text-align: center; padding-top: 16vh; }
+.handoff-big { font-size: 30px; margin: 26px 0; color: #eaf6ff; }
+.handoff-big .pname { color: var(--gold); }
+.handoff-tip { color: var(--text-dim); margin-bottom: 34px; }
+
+/* ================= 战场总览（炉石式大卡，常驻顶部） ================= */
+.battlefield { display: grid; grid-template-columns: 1fr 52px 1fr; gap: 12px; align-items: stretch; margin-bottom: 14px; }
+.bf-side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bf-label { font-size: 14px; letter-spacing: .3em; color: var(--gold); text-align: center; border-bottom: 1px dashed var(--line); padding-bottom: 4px; }
+.bf-vs { display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px rgba(255,215,110,.55); }
+.bf-cards { display: flex; gap: 10px; }
+.bcard {
+  flex: 1 1 0; min-width: 138px; border-radius: 14px; padding: 10px 12px 11px; position: relative;
+  background: linear-gradient(180deg, rgba(32,45,80,.95), rgba(19,27,50,.95));
+  border: 1px solid var(--line); box-shadow: 0 5px 18px rgba(0,0,0,.45);
+}
+.bcard.dead { opacity: .38; filter: grayscale(.9); }
+.bc-head { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 800; }
+.bc-icon { font-size: 21px; }
+.bc-form { font-size: 11px; color: var(--accent-2); margin-left: auto; white-space: nowrap; }
+.bc-hpbar { height: 10px; border-radius: 5px; background: rgba(0,0,0,.55); margin: 8px 0; overflow: hidden; }
+.bc-hpbar .hp-fill { background: linear-gradient(90deg, #2ecc71, #6ee7a0); height: 100%; transition: width .3s; }
+.bc-stats { display: flex; gap: 6px; }
+.bstat {
+  flex: 1; text-align: center; font-size: 17px; font-weight: 800; border-radius: 9px; padding: 5px 2px;
+  background: rgba(0,0,0,.38); border: 1px solid rgba(255,255,255,.09);
+}
+.bstat small { font-size: 11px; font-weight: 400; color: var(--text-dim); }
+.bstat.atk { color: #ffab7e; border-color: rgba(255,157,107,.4); }
+.bstat.hp  { color: #7ef0ae; border-color: rgba(126,240,174,.32); }
+.bstat.inc { color: var(--gold); border-color: rgba(255,215,110,.38); }
+.bc-econ { display: flex; justify-content: space-between; margin-top: 7px; font-size: 12.5px; color: var(--text-dim); }
+.bc-econ b { color: var(--text); font-size: 14px; }
+.bc-marks { margin-top: 5px; min-height: 18px; display: flex; gap: 4px; flex-wrap: wrap; }
+.bc-deadtag { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; letter-spacing: .25em; color: var(--red); text-shadow: 0 0 14px rgba(255,107,122,.75); }
+.mark { font-size: 11px; border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; color: var(--accent); background: rgba(94,200,255,.08); }
+.mark.bad { color: var(--red); border-color: rgba(255,107,122,.4); background: rgba(255,107,122,.08); }
+.mark.gold { color: var(--gold); border-color: rgba(255,215,110,.4); }
+
+/* ================= 规划屏 ================= */
+.plan-topbar {
+  display: flex; align-items: center; gap: 22px; background: var(--bg-panel);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 18px; margin-bottom: 12px;
+}
+.plan-topbar .pt-title { font-size: 16px; font-weight: 700; }
+.plan-topbar .pt-num { font-size: 20px; font-weight: 700; color: var(--gold); }
+.plan-topbar .pt-num.small { font-size: 14px; }
+.plan-topbar .warn { color: var(--red); font-size: 13px; }
+.plan-body { display: grid; grid-template-columns: 340px 1fr; gap: 12px; }
+.alloc-group { margin-bottom: 14px; }
+.alloc-group h4 { font-size: 13px; color: var(--accent); margin-bottom: 6px; letter-spacing: .1em; }
+.alloc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.alloc-row label { width: 82px; flex: none; font-size: 14px; color: var(--text-dim); white-space: nowrap; }
+.alloc-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 9px; border-radius: 5px;
+  background: linear-gradient(90deg, rgba(94,200,255,.55), rgba(167,139,255,.45)); outline: none; cursor: pointer; }
+.alloc-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, #d7efff, #5ec8ff); border: 2px solid #eaf6ff;
+  box-shadow: 0 0 12px rgba(94,200,255,.65); cursor: grab; }
+.alloc-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #5ec8ff; border: 2px solid #eaf6ff; cursor: grab; }
+.alloc-row .val { min-width: 56px; text-align: center; font-size: 20px; font-weight: 800; color: var(--gold); }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stepper button { border: none; border-radius: 0; padding: 5px 12px; background: rgba(94,200,255,.10); font-size: 15px; }
+.stepper .sval { min-width: 44px; text-align: center; font-size: 16px; font-weight: 800; color: var(--gold); }
+
+/* ================= 角色图鉴 / 选人详情 ================= */
+.roster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.roster-item { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--bg-panel-2); }
+.roster-item .ri-head { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; }
+.roster-item .ri-tier { margin-left: auto; }
+.roster-item .ri-stats { font-size: 13px; color: var(--text-dim); margin: 4px 0 8px; display: flex; gap: 16px; }
+.roster-item .ri-stats b { color: var(--gold); }
+.roster-item .ri-skills { font-size: 13px; line-height: 1.7; color: var(--text); }
+.roster-item .ri-skills b { color: var(--accent-2); }
+.roster-item .ri-skills .meta { color: var(--gold); font-size: 12px; }
+.char-detail { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 12px; min-height: 24px; font-size: 14.5px; line-height: 1.7; }
+.char-detail .cd-name { font-size: 19px; font-weight: 800; }
+.char-detail .cd-stats { color: var(--text-dim); font-size: 12.5px; margin: 2px 0 8px; }
+.char-detail .cd-skill b { color: var(--accent-2); }
+.char-detail .cd-skill .meta { color: var(--gold); font-size: 12px; }
+.cc-skills { margin-top: 7px; font-size: 13px; color: var(--accent-2); line-height: 1.45; }
+select {
+  font-family: inherit; background: var(--bg-panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 13px; max-width: 170px;
+}
+.skill-list { display: flex; flex-direction: column; gap: 8px; }
+.skill-item {
+  display: flex; gap: 10px; align-items: flex-start; background: var(--bg-panel-2);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+}
+.skill-item.on { border-color: var(--accent-2); box-shadow: 0 0 10px rgba(167,139,255,.25); }
+.skill-item.off { opacity: .45; }
+.skill-item .si-main { flex: 1; }
+.skill-item .si-name { font-weight: 700; font-size: 15px; }
+.skill-item .si-meta { font-size: 11.5px; color: var(--text-dim); margin: 2px 0 4px; }
+.skill-item .si-meta .cost { color: var(--gold); }
+.skill-item .si-meta .cd { color: var(--red); }
+.skill-item .si-desc { font-size: 13px; color: var(--text-dim); line-height: 1.55; }
+.form-choice { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.form-choice button { padding: 6px 12px; font-size: 12px; }
+.form-choice button.on { border-color: var(--gold); color: var(--gold); }
+.plan-actions { display: flex; justify-content: space-between; margin-top: 16px; }
+.plan-unit-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+.plan-unit-tabs .tab {
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; cursor: pointer;
+}
+.plan-unit-tabs .tab.on { border-color: var(--gold); color: var(--gold); }
+.plan-unit-tabs .tab.done::after { content: " ✓"; color: var(--green); }
+
+/* ================= 结算报告屏 ================= */
+.report-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.report-log { max-height: 56vh; overflow-y: auto; padding-right: 6px; }
+.report-phase { margin: 14px 0 6px; font-size: 13px; color: var(--accent); letter-spacing: .15em; border-bottom: 1px dashed var(--line); padding-bottom: 4px; }
+.ev { font-size: 14px; padding: 4px 8px; border-left: 2px solid transparent; color: var(--text); line-height: 1.6; }
+.ev b { color: var(--text); }
+.ev .dmg { color: var(--red); font-weight: 700; }
+.ev .heal { color: var(--green); font-weight: 700; }
+.ev .skillname { color: var(--accent-2); font-weight: 700; }
+.ev .death { color: var(--red); font-weight: 700; text-shadow: 0 0 8px rgba(255,107,122,.4); }
+.ev .gold { color: var(--gold); }
+.ev-key { border-left-color: var(--gold); background: rgba(255,215,110,.05); }
+.ev-dmg { border-left-color: var(--red); background: rgba(255,107,122,.06); }
+.ev-death { border-left-color: var(--red); background: rgba(255,107,122,.10); }
+.ev-skill { border-left-color: var(--accent-2); background: rgba(167,139,255,.07); }
+.ev-gold { border-left-color: var(--gold); }
+.hint-line { font-size: 12px; color: var(--text-dim); margin-top: 8px; line-height: 1.6; }
+.pt-num.warn { color: var(--red); }
+
+/* ================= 结束屏 / 帮助屏 ================= */
+#screen-end { text-align: center; padding-top: 14vh; }
+.end-big { font-size: 42px; margin: 24px 0; }
+.help-box { line-height: 1.8; font-size: 14px; }
+.help-box h3 { color: var(--gold); margin: 18px 0 8px; }
+.help-box table { border-collapse: collapse; margin: 8px 0; }
+.help-box td, .help-box th { border: 1px solid var(--line); padding: 5px 14px; font-size: 13px; }
+.triangle-diagram { display: flex; align-items: center; justify-content: center; gap: 26px; margin: 14px 0; font-size: 15px; }
+.triangle-diagram .node { border: 1px solid var(--line); border-radius: 10px; padding: 10px 18px; background: var(--bg-panel-2); }
+.triangle-diagram .arrow { color: var(--gold); font-size: 20px; }
+.triangle-diagram .node.win { border-color: var(--green); color: var(--green); }
+.triangle-diagram .node.lose { border-color: var(--red); color: var(--red); }
+
+/* ================= 测试页 ================= */
+#test-root { font-family: Consolas, monospace; padding: 20px; }
+#test-root h1 { font-size: 22px; margin-bottom: 8px; }
+#test-root .summary { font-size: 15px; margin-bottom: 16px; }
+#test-root .case { padding: 4px 10px; border-left: 3px solid var(--line); margin-bottom: 3px; font-size: 13px; }
+#test-root .case.pass { border-color: var(--green); color: var(--green); }
+#test-root .case.fail { border-color: var(--red); color: var(--red); white-space: pre-wrap; }
+#test-root .case .err { color: var(--red); margin-left: 12px; }
+
+/* AI 思考浮层 */
+.ai-thinking {
+  position: fixed; inset: 0; background: rgba(4, 6, 14, .78); z-index: 50;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+}
+.ai-spinner { width: 42px; height: 42px; border-radius: 50%; border: 3px solid rgba(94,200,255,.2); border-top-color: var(--accent); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ================= 通用弹窗 ================= */
+.modal-mask { position: fixed; inset: 0; background: rgba(4,6,14,.72); z-index: 60; display: flex; align-items: center; justify-content: center; }
+.modal-box { width: 480px; max-width: 90vw; background: linear-gradient(180deg, rgba(30,42,74,.98), rgba(19,27,50,.98));
+  border: 1px solid var(--accent); border-radius: 14px; padding: 22px 26px; box-shadow: 0 10px 44px rgba(0,0,0,.65); }
+.modal-title { font-size: 19px; font-weight: 800; color: var(--gold); margin-bottom: 12px; }
+.modal-body { font-size: 15.5px; line-height: 1.9; color: var(--text); margin-bottom: 20px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.modal-actions button { font-size: 15px; padding: 10px 24px; }
+
+/* ================= 攻击目标（独立醒目行） ================= */
+.target-select { flex: 1; width: 100%; max-width: none; font-size: 14.5px; padding: 9px 10px; }
+.target-select.need { border-color: var(--gold); box-shadow: 0 0 10px rgba(255,215,110,.35); }
+.target-fixed { flex: 1; font-size: 14px; color: var(--gold); background: rgba(255,215,110,.08);
+  border: 1px solid rgba(255,215,110,.3); border-radius: 8px; padding: 8px 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 标题/模式屏 ===== -->
+  <section id="screen-title" class="screen active">
+    <h1 class="game-title">星际争霸 <span class="t3">III</span></h1>
+    <p class="subtitle">回 合 制 博 弈 · 同 人 二 创</p>
+    <div class="mode-row" id="mode-row">
+      <button class="mode-btn selected" data-mode="1v1">1v1</button>
+      <button class="mode-btn" data-mode="2v2">2v2</button>
+      <button class="mode-btn" data-mode="3v3">3v3</button>
+    </div>
+    <div class="ai-options" id="ai-options">
+      <label><input type="checkbox" id="ai-enabled"> 玩家2 = AI 对手</label>
+      <div class="difficulty-row">
+        <label><input type="radio" name="ai-diff" value="easy"> 简单</label>
+        <label><input type="radio" name="ai-diff" value="normal" checked> 普通</label>
+        <label><input type="radio" name="ai-diff" value="hard"> 困难</label>
+      </div>
+    </div>
+    <div class="title-actions">
+      <button class="primary" id="btn-start">开始游戏</button>
+      <button class="ghost" id="btn-roster">角色图鉴</button>
+      <button class="ghost" id="btn-help">规则速查</button>
+    </div>
+    <p class="footnote">本作品为星际争霸主题同人二创 · 纯本地运行 · 无任何外部依赖 · <b id="ver-tag">v1.4</b></p>
+  </section>
+
+  <!-- ===== 角色选择屏 ===== -->
+  <section id="screen-select" class="screen">
+    <h2>角色选择</h2>
+    <p class="select-hint" id="select-hint"></p>
+    <div class="panel">
+      <div class="char-grid" id="char-grid"></div>
+      <div class="char-detail" id="char-detail"></div>
+      <div class="lineup-strip" id="lineup-strip"></div>
+      <div class="select-actions">
+        <button class="ghost" id="btn-select-back">返回</button>
+        <button class="primary" id="btn-select-confirm" disabled>确认阵容</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 复制目标选择屏 ===== -->
+  <section id="screen-copy" class="screen">
+    <h2>复制目标选择</h2>
+    <p class="select-hint" id="copy-hint"></p>
+    <div class="panel" id="copy-panel"></div>
+  </section>
+
+  <!-- ===== 交接屏 ===== -->
+  <section id="screen-handoff" class="screen">
+    <h2>行动保密</h2>
+    <div class="handoff-big" id="handoff-text"></div>
+    <p class="handoff-tip">请确认只有当前玩家本人注视屏幕</p>
+    <button class="primary" id="btn-handoff-ok">我已就位，开始规划</button>
+  </section>
+
+  <!-- ===== 规划屏 ===== -->
+  <section id="screen-plan" class="screen">
+    <div id="plan-battlefield"></div>
+    <div class="plan-unit-tabs" id="plan-unit-tabs"></div>
+    <div class="plan-topbar" id="plan-topbar"></div>
+    <div class="plan-body">
+      <div class="panel" id="plan-alloc"></div>
+      <div class="panel" id="plan-skills"></div>
+    </div>
+    <div class="plan-actions">
+      <button class="ghost" id="btn-plan-prev">上一个单位</button>
+      <button class="primary" id="btn-plan-confirm">确认本单位规划</button>
+    </div>
+  </section>
+
+  <!-- ===== 结算报告屏 ===== -->
+  <section id="screen-report" class="screen">
+    <div id="report-battlefield"></div>
+    <div class="report-head">
+      <h2 id="report-title">结算报告</h2>
+      <button class="primary" id="btn-next-round">下一回合</button>
+    </div>
+    <div class="panel report-log" id="report-log"></div>
+  </section>
+
+  <!-- ===== 结束屏 ===== -->
+  <section id="screen-end" class="screen">
+    <h2>对局结束</h2>
+    <div class="end-big" id="end-text"></div>
+    <button class="primary" id="btn-restart">再来一局</button>
+  </section>
+
+  <!-- ===== 角色图鉴屏 ===== -->
+  <section id="screen-roster" class="screen">
+    <h2>角色图鉴</h2>
+    <p class="select-hint">⚔ 低阶（L）与高阶（H）数值差距较大，建议<b style="color:var(--gold)">同阶对战</b>；双方之间可以镜像同角色</p>
+    <div class="panel"><div class="roster-grid" id="roster-grid"></div></div>
+    <div style="text-align:center;margin-top:16px"><button class="primary" id="btn-roster-back">返回</button></div>
+  </section>
+
+  <!-- ===== 帮助屏 ===== -->
+  <section id="screen-help" class="screen">
+    <div class="panel help-box" id="help-content"></div>
+    <div style="text-align:center;margin-top:16px"><button class="primary" id="btn-help-back">返回</button></div>
+  </section>
+
+  <!-- ===== AI 思考浮层（纯视觉延迟，可跳过） ===== -->
+  <div id="ai-thinking" class="ai-thinking" style="display:none">
+    <div class="ai-spinner"></div>
+    <div style="font-size:18px;letter-spacing:.2em">AI 思考中…</div>
+    <button id="btn-ai-skip" class="ghost">跳过等待 ▶</button>
+  </div>
+
+  <!-- ===== 通用确认弹窗 ===== -->
+  <div id="modal-mask" class="modal-mask" style="display:none">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-actions" id="modal-actions"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     DATA 层：角色 / 技能 / 形态 数据表（规格 §6 的机器可读版本）
+     禁止访问 document/window
+============================================================ -->
+<script data-layer="DATA">
+'use strict';
+
+const SKILLS = {
+  trinity:     { name: '三态',       cost: 0,  cooldown: 2, type: 'form',    target: 'self',  desc: '切换至三形态之一，持续到下次切换：①攻形态：攻点×2　②防形态：防点×4　③存形态：存入×2' },
+  execute:     { name: '处决',       cost: 8,  cooldown: 0, type: 'active', target: 'enemy', desc: '目标失去其最大生命的 50%（四舍五入），不吃防御/盾' },
+  aggAtk:      { name: '聚合攻击',   cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '常驻姿态：激活后本角色的攻击改为对全部存活敌方各结算一次全额伤害（与聚合防御互斥，可随时切换，持续到再次切换）' },
+  aggDef:      { name: '聚合防御',   cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '常驻姿态：激活后本角色宣告防点 X 时，每个存活队友获得 floor(X/2) 防御点（自己不获得；与聚合攻击互斥，可随时切换）' },
+  insight:     { name: '识破',       cost: 0,  cooldown: 0, type: 'active', target: 'enemy', declareAB: true, desc: '宣告 (A,B,目标)：结算时若己方 A 分配 > 目标 B 分配 → 目标本回合 B 分配归零' },
+  berserk:     { name: '狂暴',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '不受任何其他单位技能影响（敌我技能均无效，含增益）' },
+  endless:     { name: '生生不息',   cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '回合开始额外获得 floor(上回合存入量/4) 点' },
+  production:  { name: '生产',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '存入效果 ×2（宣告存 X 实际存 2X）' },
+  confusion:   { name: '迷乱',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '存活于场上时，所有攻击事件的目标集变为全场所有存活单位（含攻击者自己与队友）' },
+  counter:     { name: '反制',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '作为受击目标时，若本回合宣告攻点 > 该条攻击攻点 → 该攻击攻点视为 0' },
+  lightblade:  { name: '星灵光刃',   cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '泽拉图攻击时，若其攻点 > 受击者宣告防点 → 受击者防点对本攻击无效' },
+  dodge:       { name: '闪避',       cost: 4,  cooldown: 1, type: 'active', target: 'self',  desc: '本回合免疫所有攻击伤害' },
+  breakthrough:{ name: '势如破竹',   cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '常驻被动：每回合自动瓦解敌方收入最高且未被瓦解的单位，其收入永久 −2（狂暴单位免疫；同一目标整场仅一次）' },
+  pierce:      { name: '穿甲弹',     cost: 4,  cooldown: 1, type: 'active', target: 'enemy', desc: '指定一名敌方单位，本回合其防御无效' },
+  corrode:     { name: '腐蚀飞弹',   cost: 3,  cooldown: 1, type: 'active', target: 'enemy', stackable: true, desc: '目标本回合攻/防/存分配各减半；同回合可买多层（3点/层）' },
+  blaze:       { name: '烈焰飞弹',   cost: 3,  cooldown: 1, type: 'active', target: 'enemy', stackable: true, desc: '目标本回合受到的伤害 ×2/层；同回合可买多层（3点/层）' },
+  emp:         { name: 'EMP弹',      cost: 4,  cooldown: 2, type: 'active', target: 'enemy', desc: '目标本回合攻/防/存分配全部无效（点数照扣不退还）' },
+  shieldField: { name: '电磁场',     cost: 4,  cooldown: 2, type: 'active', target: 'self',  desc: '自己获得 20 点盾（回合末清除剩余）' },
+  plasma:      { name: '电浆束',     cost: 4,  cooldown: 2, type: 'active', target: 'self',  desc: '自己本回合攻击力 +3' },
+  ult:         { name: '致命突袭',   cost: 6,  cooldown: 0, type: 'active', target: 'enemy', desc: '宣告目标；回合结束结算：若凯瑞甘存活且本回合未受任何伤害 → 目标失去 24 HP（不吃防御/盾）' },
+  regen:       { name: '再生',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '回合开始 +4 HP（不超过当前形态上限）' },
+  evolve:      { name: '进化',       cost: 6,  cooldown: 0, type: 'active', target: 'self',  desc: '回合结束进入形态二，血量重置为新形态上限' },
+  superEvolve: { name: '超进化',     cost: 12, cooldown: 0, type: 'active', target: 'self',  desc: '回合结束进入形态三，血量重置为新形态上限' },
+  devolve:     { name: '退化',       cost: 0,  cooldown: 0, type: 'active', target: 'self',  desc: '回合结束回形态一：上限 20、血量截断至 ≤20，返还进化费用入下回合池（形态二返 6 / 形态三返 12）' },
+  paraRay:     { name: '麻痹光线',   cost: 3,  cooldown: 1, type: 'active', target: 'enemy', desc: '目标本回合攻击力 −2（最低 0）' },
+  chain:       { name: '连锁电击',   cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '奥丁攻击时，目标集之外其他所有存活敌方额外受 floor(主目标实际伤害/2) 溅射（不吃防御）' },
+  bindRay:     { name: '束缚光线',   cost: 3,  cooldown: 1, type: 'active', target: 'enemy', desc: '目标本回合宣告的主动技能全部失效（费用照扣不退还；被动免疫）' },
+  sticky:      { name: '黏滞',       cost: 3,  cooldown: 1, type: 'active', target: 'enemy', desc: '同腐蚀飞弹单层（不可同回合叠加）' },
+  soul:        { name: '噬灵',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '场上存活噬灵来源时：对任一目标造成攻击伤害的单位获得噬灵层；带层单位每回合开始每层付 2 点，付不起则失去 round(最大生命×25%)；层数永不消失' },
+  degenerate:  { name: '堕落',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '回合开始 −10 HP；HP ≤ 40 → 形态二属性，HP ≤ 20 → 形态三属性（血量数值不变）' },
+  unbroken:    { name: '不屈',       cost: 0,  cooldown: 0, type: 'passive', target: 'none', desc: '每场限一次：死亡时改为存活、HP=60、回形态一' },
+  copy:        { name: '复制',       cost: 0,  cooldown: 0, type: 'special', target: 'none', desc: '战斗开始前公开选择场上任意一名单位（复制者除外），复制其当前形态的攻/上限/收入与全部技能；初始 HP = 目标当前上限' },
+  selfdestruct:{ name: '自爆',       cost: 0,  cooldown: 0, type: 'active', target: 'self',  desc: '本回合攻点 ×2 用于伤害计算；主目标结算后复制者受到等量伤害（无视防御与盾）' },
+};
+
+/* 形态定义：formKey 决定语义，form 为具体形态 id */
+const FORM_DEFS = {
+  trinity: {
+    initial: null,
+    labels: { 'atk': '攻形态', 'def': '防形态', 'sav': '存形态' },
+    choices: [
+      { id: 'atk', label: '①攻形态（攻点×2）' },
+      { id: 'def', label: '②防形态（防点×4）' },
+      { id: 'sav', label: '③存形态（存入×2）' },
+    ],
+  },
+  alarak: {
+    initial: 'ad',
+    labels: { 'ad': '攻防一体', 'ds': '防存一体', 'as': '攻存一体' },
+    choices: [
+      { id: 'ad', label: '①攻防一体（攻⇄防联动）' },
+      { id: 'ds', label: '②防存一体（防⇄存联动）' },
+      { id: 'as', label: '③攻存一体（攻⇄存联动）' },
+    ],
+  },
+  dehaka: {
+    initial: 'f1',
+    labels: { 'f1': '形态一', 'f2': '形态二', 'f3': '形态三' },
+    stats: { 'f1': { atk: 3, hp: 20, income: 6 }, 'f2': { atk: 3, hp: 30, income: 8 }, 'f3': { atk: 5, hp: 40, income: 10 } },
+  },
+  amon: {
+    initial: 'f1',
+    labels: { 'f1': '形态一', 'f2': '形态二', 'f3': '形态三' },
+    stats: { 'f1': { atk: 1, hp: 60, income: 6 }, 'f2': { atk: 2, hp: 40, income: 8 }, 'f3': { atk: 3, hp: 20, income: 10 } },
+    thresholds: [{ hp: 40, form: 'f2' }, { hp: 20, form: 'f3' }],
+  },
+};
+
+const CHARACTERS = {
+  L1:  { id: 'L1',  tier: '低阶', name: '三位一体',       icon: '🔱', atk: 6, hp: 30, income: 2,  skills: ['trinity'], formKey: 'trinity' },
+  L2:  { id: 'L2',  tier: '低阶', name: '萨尔纳加圣堂武士', icon: '⚔️', atk: 3, hp: 30, income: 6,  skills: ['execute'] },
+  L3:  { id: 'L3',  tier: '低阶', name: '塔萨达尔',       icon: '🌟', atk: 2, hp: 16, income: 10, skills: ['aggAtk', 'aggDef'] },
+  L4:  { id: 'L4',  tier: '低阶', name: '卡尔达里斯',     icon: '🔮', atk: 2, hp: 24, income: 8,  skills: ['insight'] },
+  L5:  { id: 'L5',  tier: '低阶', name: '断牙',           icon: '🦷', atk: 3, hp: 32, income: 8,  skills: ['berserk'] },
+  L6:  { id: 'L6',  tier: '低阶', name: '刺蛇',           icon: '🐍', atk: 1, hp: 16, income: 12, skills: ['endless'] },
+  L7:  { id: 'L7',  tier: '低阶', name: '阿拉纳克',       icon: '😤', atk: 2, hp: 16, income: 6,  skills: [], formKey: 'alarak' },
+  L8:  { id: 'L8',  tier: '低阶', name: 'SCV',            icon: '🔧', atk: 3, hp: 24, income: 4,  skills: ['production'] },
+  L9:  { id: 'L9',  tier: '低阶', name: '战争使者',       icon: '💀', atk: 3, hp: 24, income: 10, skills: ['confusion'] },
+  L10: { id: 'L10', tier: '低阶', name: '萨尔纳加伏击者', icon: '🥷', atk: 3, hp: 28, income: 6,  skills: ['counter'] },
+  H1:  { id: 'H1',  tier: '高阶', name: '泽拉图',         icon: '🕶️', atk: 3, hp: 24, income: 8,  skills: ['lightblade', 'dodge'] },
+  H2:  { id: 'H2',  tier: '高阶', name: '雷诺',           icon: '🤠', atk: 3, hp: 28, income: 8,  skills: ['breakthrough', 'pierce'] },
+  H3:  { id: 'H3',  tier: '高阶', name: '斯托科夫',       icon: '🧟', atk: 2, hp: 20, income: 8,  skills: ['corrode', 'blaze'] },
+  H4:  { id: 'H4',  tier: '高阶', name: '幽灵',           icon: '🔫', atk: 1, hp: 12, income: 8,  skills: ['emp', 'shieldField', 'plasma'] },
+  H5:  { id: 'H5',  tier: '高阶', name: '凯瑞甘',         icon: '👑', atk: 2, hp: 28, income: 8,  skills: ['ult', 'regen'] },
+  H6:  { id: 'H6',  tier: '高阶', name: '德哈卡',         icon: '🦖', atk: 3, hp: 20, income: 6,  skills: ['evolve', 'superEvolve', 'devolve'], formKey: 'dehaka' },
+  H7:  { id: 'H7',  tier: '高阶', name: '奥丁',           icon: '🤖', atk: 3, hp: 20, income: 8,  skills: ['paraRay', 'chain', 'bindRay'] },
+  H8:  { id: 'H8',  tier: '高阶', name: '阿巴瑟',         icon: '🧬', atk: 1, hp: 60, income: 8,  skills: ['sticky', 'soul'] },
+  H9:  { id: 'H9',  tier: '高阶', name: '埃蒙',           icon: '👁️', atk: 1, hp: 60, income: 6,  skills: ['degenerate', 'unbroken'], formKey: 'amon' },
+  H10: { id: 'H10', tier: '高阶', name: '萨尔纳加复制者', icon: '🪞', atk: 0, hp: 0, income: 0,  skills: ['copy', 'selfdestruct'], replicator: true },
+};
+
+const MODE_UNIT_COUNT = { '1v1': 1, '2v2': 2, '3v3': 3 };
+</script>
+
+<!-- ============================================================
+     ENGINE 层：纯函数结算引擎（禁止触碰 DOM/document/window）
+     API：createGame / beginRound / resolveRound / playRound / validatePlan
+============================================================ -->
+<script data-layer="ENGINE">
+'use strict';
+
+const MAX_ROUNDS = 100; // 回合上限：到顶判平局（防无限对拖延）
+
+/* ---------- 工具 ---------- */
+function cloneState(state, liteHistory = false) {
+  return {
+    mode: state.mode,
+    round: state.round,
+    winner: state.winner,
+    maxRounds: state.maxRounds,
+    aiPlayer: state.aiPlayer || null,
+    teams: {
+      A: state.teams.A.map(cloneUnit),
+      B: state.teams.B.map(cloneUnit),
+    },
+    history: liteHistory ? [] : state.history.map(h => ({
+      round: h.round,
+      actions: Object.fromEntries(Object.entries(h.actions).map(([uid, a]) => [uid, {
+        attack: a.attack ? { ...a.attack } : null,
+        defend: a.defend, save: a.save,
+        skills: (a.skills || []).map(s => ({ ...s })),
+      }])),
+    })),
+  };
+}
+
+function cloneUnit(u) {
+  return {
+    uid: u.uid, charId: u.charId, copiedFrom: u.copiedFrom || null,
+    name: u.name, icon: u.icon, team: u.team, slot: u.slot,
+    hp: u.hp, maxHp: u.maxHp, atk: u.atk, income: u.income,
+    available: u.available, bank: u.bank,
+    cooldowns: { ...u.cooldowns },
+    form: u.form, formKey: u.formKey || null,
+    skills: u.skills.slice(),
+    soulMarks: u.soulMarks,
+    lastSave: u.lastSave,
+    unbrokenUsed: !!u.unbrokenUsed,
+    brokenDone: !!u.brokenDone,   // 已被势如破竹作用过
+    stance: u.stance || null,     // 聚合姿态（常驻）
+    alive: u.alive,
+    roundFlags: cloneFlags(u.roundFlags),
+  };
+}
+
+function cloneFlags(f) {
+  return {
+    bound: false, empd: false, corrodeLayers: 0, blazeLayers: 0,
+    atkMod: 0, shield: 0, dodging: false, pierced: false,
+    aggAtk: false, aggDef: false,
+    insight: null,            // { a, b, targetUid }
+    damageTaken: 0,
+    soulGainMark: false,
+    defPool: 0,               // 本回合防御池（S2 消耗用）
+    grantedDef: 0,            // 聚合防御等外部赠予防御
+    selfdestruct: false,
+  };
+}
+
+function allUnits(state) { return [...state.teams.A, ...state.teams.B]; }
+function aliveUnits(state) { return allUnits(state).filter(u => u.alive); }
+function enemiesOf(state, unit) {
+  return state.teams[unit.team === 'A' ? 'B' : 'A'];
+}
+function unitByUid(state, uid) {
+  for (const u of allUnits(state)) if (u.uid === uid) return u;
+  return null;
+}
+function hasSkill(unit, skillId) { return unit.skills.includes(skillId); }
+
+/* 单位是否免疫其他单位技能（断牙狂暴 / 复制了断牙者） */
+function isSkillImmune(victim, srcUnit) {
+  if (!srcUnit || srcUnit.uid === victim.uid) return false; // 自己的技能对自己有效
+  return hasSkill(victim, 'berserk');
+}
+
+/* ---------- 创建对局 ---------- */
+function makeUnit(charId, team, slot) {
+  const c = CHARACTERS[charId];
+  if (!c) throw new Error('未知角色: ' + charId);
+  const formKey = c.formKey || null;
+  const initialForm = formKey ? FORM_DEFS[formKey].initial : null;
+  const formStats = formKey && FORM_DEFS[formKey].stats && initialForm
+    ? FORM_DEFS[formKey].stats[initialForm] : null;
+  return {
+    uid: team + slot,
+    charId, copiedFrom: null,
+    name: c.name, icon: c.icon, team, slot,
+    hp: formStats ? formStats.hp : c.hp,
+    maxHp: formStats ? formStats.hp : c.hp,
+    atk: formStats ? formStats.atk : c.atk,
+    income: formStats ? formStats.income : c.income,
+    available: 0, bank: 0,
+    cooldowns: {},
+    form: initialForm, formKey,
+    skills: c.skills.slice(),
+    soulMarks: 0, lastSave: 0,
+    unbrokenUsed: false, brokenDone: false,
+    stance: null, // 聚合姿态（常驻，跨回合持久）：'aggAtk' | 'aggDef' | null
+    alive: true,
+    roundFlags: cloneFlags(null),
+  };
+}
+
+/**
+ * createGame(mode, teamACharIds, teamBCharIds, opts?)
+ * opts.replicas: [{ unit: 'A0', target: 'B0' }] —— 复制者开局复制（战斗开始前公开选择）
+ */
+function createGame(mode, teamACharIds, teamBCharIds, opts = {}) {
+  const n = MODE_UNIT_COUNT[mode];
+  if (!n) throw new Error('未知模式: ' + mode);
+  if (!Array.isArray(teamACharIds) || teamACharIds.length !== n) throw new Error('A 队角色数量错误');
+  if (!Array.isArray(teamBCharIds) || teamBCharIds.length !== n) throw new Error('B 队角色数量错误');
+  if (new Set(teamACharIds).size !== n) throw new Error('同队不可选择重复角色（A 队）');
+  if (new Set(teamBCharIds).size !== n) throw new Error('同队不可选择重复角色（B 队）');
+
+  const state = {
+    mode, round: 0, winner: null, maxRounds: MAX_ROUNDS,
+    aiPlayer: opts.aiPlayer || null,
+    teams: {
+      A: teamACharIds.map((id, i) => makeUnit(id, 'A', i)),
+      B: teamBCharIds.map((id, i) => makeUnit(id, 'B', i)),
+    },
+    history: [],
+  };
+
+  // 复制者开局复制
+  const replicas = opts.replicas || [];
+  const replicators = allUnits(state).filter(u => u.charId === 'H10');
+  for (const rep of replicators) {
+    const choice = replicas.find(r => r.unit === rep.uid);
+    if (!choice) throw new Error('复制者 ' + rep.uid + ' 缺少复制目标');
+    const target = unitByUid(state, choice.target);
+    if (!target) throw new Error('复制目标不存在: ' + choice.target);
+    if (target.charId === 'H10') throw new Error('复制者不能复制复制者');
+    applyReplica(rep, target);
+  }
+  return state;
+}
+
+/* 复制：当前形态属性 + 全部技能（不含复制）+ 保留自爆 */
+function applyReplica(rep, target) {
+  rep.copiedFrom = target.charId;
+  rep.name = '复制·' + target.name;
+  rep.atk = target.atk;
+  rep.maxHp = target.maxHp;
+  rep.hp = target.maxHp;           // 初始 HP = 目标当前上限
+  rep.income = target.income;
+  rep.form = target.form;
+  rep.formKey = target.formKey;
+  rep.skills = target.skills.filter(s => s !== 'copy').concat(['selfdestruct']);
+}
+
+/* ---------- 规划校验（完整版；只校验实际提交的单位条目） ---------- */
+function validatePlan(state, playerId, plan) {
+  const errors = [];
+  const own = state.teams[playerId] || [];
+  const planned = new Set(Object.keys(plan));
+
+  for (const unit of own) {
+    if (!unit.alive) {
+      if (planned.has(unit.uid)) errors.push(`死亡单位 ${unit.name} 不可规划`);
+      continue;
+    }
+    // 未提交条目的存活单位不在本次校验范围（空计划合法，由调用方保证全员提交）
+    const p = plan[unit.uid];
+    if (!p || typeof p !== 'object') continue;
+    let spent = 0;
+
+    // 攻击（points ≤ 0 视为未宣告）
+    if (p.attack && p.attack.points > 0) {
+      const t = unitByUid(state, p.attack.targetUid);
+      if (!t || !t.alive || t.team === unit.team) errors.push(`${unit.name}: 攻击目标非法`);
+      spent += p.attack.points;
+    }
+    // 防御 / 存入
+    spent += p.defend || 0;
+    spent += p.save || 0;
+
+    // 阿拉纳克形态每回合必选（⚑R17）
+    if (unit.formKey === 'alarak' && !['ad', 'ds', 'as'].includes(p.formChoice)) {
+      errors.push(`${unit.name}: 阿拉纳克必须选择本回合形态`);
+    }
+
+    // 技能
+    const skills = p.skills || [];
+    for (const sk of skills) {
+      const def = SKILLS[sk.id];
+      if (!def) { errors.push(`${unit.name}: 未知技能 ${sk.id}`); continue; }
+      if (!unit.skills.includes(sk.id)) { errors.push(`${unit.name} 不具备技能 ${def.name}`); continue; }
+      if (def.type === 'passive' || def.type === 'special') { errors.push(`${def.name} 为被动/特殊技能，无需宣告`); continue; }
+      if ((unit.cooldowns[sk.id] || 0) > 0) { errors.push(`${def.name} 冷却中（剩 ${unit.cooldowns[sk.id]} 回合）`); continue; }
+      const count = sk.count || 1;
+      if (count < 1) errors.push(`${def.name} 层数非法`);
+      if (sk.id === 'sticky' && count > 1) errors.push(`${def.name} 不可同回合叠加`);
+      if (sk.id === 'trinity' && !['atk', 'def', 'sav'].includes(sk.form || '')) errors.push(`${unit.name}: 三态需选择形态`);
+      if (sk.id === 'insight' && (!['atk', 'def', 'save'].includes(sk.a) || !['atk', 'def', 'save'].includes(sk.b))) {
+        errors.push(`${unit.name}: 识破需宣告 (A,B) 类型`);
+      }
+      spent += def.cost * count;
+      if (def.target === 'enemy') {
+        const t = sk.targetUid ? unitByUid(state, sk.targetUid) : null;
+        if (!t || !t.alive || t.team === unit.team) { errors.push(`${def.name} 目标非法`); continue; }
+      }
+    }
+
+    // 聚合姿态（常驻，跨回合持久）：仅聚合系角色可设置
+    if (p.aggStance !== undefined && p.aggStance !== null) {
+      if (!['aggAtk', 'aggDef'].includes(p.aggStance)) errors.push(`${unit.name}: 非法聚合姿态`);
+      else if (!unit.skills.includes('aggAtk') && !unit.skills.includes('aggDef')) errors.push(`${unit.name}: 不具备聚合技能，无法设置姿态`);
+    }
+
+    if (spent > unit.available) {
+      errors.push(`${unit.name}: 总支出 ${spent} 超过可用 ${unit.available}`);
+    }
+    if ((p.defend || 0) < 0 || (p.save || 0) < 0 || (p.attack && p.attack.points < 0)) {
+      errors.push(`${unit.name}: 分配不可为负`);
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+/* ---------- 回合时间线（严格按规格 §4：R1 → S1 → S2 → S3 → S4 → S5） ---------- */
+
+function emptyPlan(uid) {
+  return { unitUid: uid, formChoice: undefined, attack: null, defend: 0, save: 0, skills: [] };
+}
+
+/* plans 允许 { uid: plan } 或 Plan 数组，统一为 { uid: plan } */
+function normalizePlans(plans) {
+  const out = {};
+  if (!plans) return out;
+  if (Array.isArray(plans)) {
+    for (const p of plans) if (p && p.unitUid) out[p.unitUid] = { ...emptyPlan(p.unitUid), ...p };
+  } else {
+    for (const uid of Object.keys(plans)) {
+      const p = plans[uid];
+      if (p && typeof p === 'object') out[uid] = { ...emptyPlan(uid), ...p, unitUid: uid };
+    }
+  }
+  return out;
+}
+
+/* ⚑R4 全局结算顺序：队伍 A→B、槽位升序 */
+function orderedUnits(s) { return [...s.teams.A, ...s.teams.B]; }
+function teamSlotKey(uid) { return (uid[0] === 'A' ? 0 : 10) + Number(uid.slice(1)); }
+
+function ev(phase, type, src, dst, text, values, hl) {
+  return { phase, type, src: src || null, dst: dst || null, text, values: values || {}, hl: hl || null };
+}
+function unitLabel(u) { return `${u.icon}${u.name}（${u.team}${u.slot}）`; }
+
+/* ---------- R1 回合开始阶段 ---------- */
+function beginRound(state, opts = {}) {
+  const s = cloneState(state);
+  const events = [];
+  const silent = !!opts.silent;
+  s.round += 1;
+
+  // R1.1 所有单位冷却 −1，减到 0 的技能恢复可用
+  for (const u of allUnits(s)) {
+    for (const k of Object.keys(u.cooldowns)) {
+      if (u.cooldowns[k] > 0) u.cooldowns[k] -= 1;
+    }
+  }
+
+  // R1.2 收入：available += income；存入余额并入后清零
+  for (const u of orderedUnits(s)) {
+    if (!u.alive) continue;
+    const inc = u.income, carry = u.bank;
+    u.available += inc + carry;
+    u.bank = 0;
+    if (!silent) events.push(ev('R1', 'income', null, u.uid,
+      `${unitLabel(u)} 获得收入 ${inc}${carry ? `，存入结转 ${carry}` : ''} → 可用 ${u.available}`,
+      { income: inc, carry, available: u.available }, 'gold'));
+  }
+
+  // R1.3 被动触发（固定顺序：再生 → 生生不息 → 堕落 → 噬灵结算；M2 实装）
+  runR1Passives(s, events, opts);
+
+  return { state: s, events };
+}
+
+/* ---------- R3 结算阶段 ---------- */
+function resolveRound(state, plans, opts = {}) {
+  const s = cloneState(state);
+  const events = [];
+  const silent = !!opts.silent;
+  const P = normalizePlans(plans);
+  const starters = orderedUnits(s).filter(u => u.alive);
+
+  // 各单位本回合分配上下文（S1 层会修正有效值；roundFlags 重建）
+  const eff = {}; // uid -> { atk, def, save, power, skillCost, declared, saveMult, saveGift, refund, effSave, plan }
+  for (const u of starters) {
+    const p = P[u.uid] || emptyPlan(u.uid);
+    const rawAtk = p.attack && p.attack.points > 0 ? p.attack.points : 0;
+    const rawDef = p.defend || 0;
+    const rawSave = p.save || 0;
+    const skillCost = (p.skills || []).reduce((a, sk) => {
+      const d = SKILLS[sk.id];
+      return a + (d && d.cost ? d.cost * (sk.count || 1) : 0);
+    }, 0);
+    eff[u.uid] = {
+      atk: rawAtk, def: rawDef, save: rawSave,
+      power: u.atk,
+      skillCost, declared: rawAtk + rawDef + rawSave + skillCost,
+      saveMult: 1, saveGift: 0, refund: 0, effSave: 0,
+      plan: p,
+    };
+    u.roundFlags = cloneFlags(null);
+  }
+
+  // ---- S1 技能控制与修正层（战斗前生效；M2 实装各技能） ----
+  runS1(s, P, eff, events, opts);
+
+  // ---- S2 战斗层 ----
+  // S2 前置：防御池 = 有效防御 + 获赠防御；有效存入 = 存入 × 形态/被动倍率 + 联动赠予（S2 时计入，见 S5.4）
+  for (const u of starters) {
+    const e = eff[u.uid];
+    u.roundFlags.defPool = e.def + u.roundFlags.grantedDef;
+    e.effSave = e.save * e.saveMult * (hasSkill(u, 'production') ? 2 : 1) + e.saveGift;
+  }
+
+  // 2.1 生成攻击事件列表
+  const attacks = [];
+  for (const u of starters) {
+    const e = eff[u.uid];
+    const targetUid = e.plan.attack && e.atk > 0 ? e.plan.attack.targetUid : null;
+    if (targetUid) attacks.push({ srcUid: u.uid, targetUid, points: e.atk, power: e.power });
+  }
+  // ⚑R1：攻点从大到小，相同按 (队伍, 槽位) 升序
+  attacks.sort((a, b) => b.points - a.points || teamSlotKey(a.srcUid) - teamSlotKey(b.srcUid));
+
+  // 2.2 逐条结算（同时性 ⚑R2：死亡只在 S4 判定，结算途中 HP 可为负、宣告照常结算）
+  for (const atk of attacks) {
+    const src = unitByUid(s, atk.srcUid);
+    const victims = computeTargetSet(s, atk);
+    const declaredTarget = unitByUid(s, atk.targetUid);
+    let mainDmg = 0, anyEnemyDmg = false;
+    for (const v of victims) {
+      if (v.roundFlags.dodging) {
+        if (!silent) events.push(ev('S2', 'dodge', atk.srcUid, v.uid,
+          `${unitLabel(v)} 处于闪避状态，免疫该攻击`, {}, 'skill'));
+        if (v === declaredTarget) mainDmg = 0;
+        continue;
+      }
+      let pts = atk.points;
+      let countered = false;
+      // 萨尔纳加伏击者反制（⚑R8）：仅声明目标判定（实现裁定）
+      if (v === declaredTarget && hasSkill(v, 'counter') && eff[v.uid].atk > pts) {
+        pts = 0;
+        countered = true;
+      }
+      // 星灵光刃：泽拉图攻点 > 受击者有效防点 → 该受击者防点对本攻击无效
+      let defIgnored = false;
+      if (src && hasSkill(src, 'lightblade') && pts > eff[v.uid].def) defIgnored = true;
+      // 穿甲弹标记
+      if (v.roundFlags.pierced) defIgnored = true;
+      const actualDef = defIgnored ? 0 : Math.min(v.roundFlags.defPool, pts);
+      if (!defIgnored) v.roundFlags.defPool -= actualDef;   // 防御被消耗不返还
+      let dmg = Math.max(0, (pts - actualDef) * atk.power);
+      const baseDmg = dmg;
+      if (dmg > 0 && v.roundFlags.blazeLayers > 0) dmg *= Math.pow(2, v.roundFlags.blazeLayers); // 烈焰 ×2^L
+      let shieldAbs = 0;
+      if (dmg > 0 && v.roundFlags.shield > 0) {
+        shieldAbs = Math.min(v.roundFlags.shield, dmg);
+        v.roundFlags.shield -= shieldAbs;
+        dmg -= shieldAbs;
+      }
+      if (dmg > 0) { v.hp -= dmg; v.roundFlags.damageTaken += dmg; }
+      if (!silent) events.push(ev('S2', 'attack', atk.srcUid, v.uid,
+        `${unitLabel(src)} 攻击 ${unitLabel(v)}：攻 ${pts}${countered ? '（反制归零）' : ''}${actualDef ? ` − 防 ${actualDef}` : (defIgnored ? '（防无效）' : '')} × 攻击力 ${atk.power} → 伤害 ${dmg}${shieldAbs ? `（盾吸收 ${shieldAbs}）` : ''}`,
+        { points: pts, def: actualDef, power: atk.power, dmg, shieldAbs, countered }, dmg > 0 ? 'damage' : null));
+      if (v === declaredTarget) mainDmg = dmg;
+      if (dmg > 0 && v.team !== src.team) anyEnemyDmg = true;
+    }
+    // S2.c 连锁电击（奥丁攻击被动，⚑R9）：目标集之外其他存活敌方受 floor(主目标伤害/2) 溅射
+    if (src && hasSkill(src, 'chain') && mainDmg > 0) {
+      const splash = Math.floor(mainDmg / 2);
+      const inSet = new Set(victims.map(v => v.uid));
+      for (const v of aliveUnits(s)) {
+        if (v.team === src.team || inSet.has(v.uid)) continue;
+        if (isSkillImmune(v, src)) {
+          if (!silent) events.push(ev('S2', 'immune', atk.srcUid, v.uid, `${unitLabel(v)} 狂暴：免疫连锁电击溅射`, {}, 'skill'));
+          continue;
+        }
+        let d = splash * Math.pow(2, v.roundFlags.blazeLayers); // 溅射吃烈焰倍率（不叠加）
+        let shieldAbs = 0;
+        if (d > 0 && v.roundFlags.shield > 0) {
+          shieldAbs = Math.min(v.roundFlags.shield, d);
+          v.roundFlags.shield -= shieldAbs;
+          d -= shieldAbs;
+        }
+        if (d > 0) { v.hp -= d; v.roundFlags.damageTaken += d; }
+        if (!silent) events.push(ev('S2', 'splash', atk.srcUid, v.uid,
+          `${unitLabel(v)} 受连锁电击溅射 ${d}${shieldAbs ? `（盾吸收 ${shieldAbs}）` : ''}（不吃防御）`, { splash: d, shieldAbs }, d > 0 ? 'damage' : null));
+      }
+    }
+    // S2.d 自爆反噬（⚑R10）：复制者受到主目标所受的等量伤害（无视防御与盾）
+    if (src && src.roundFlags.selfdestruct && mainDmg > 0) {
+      src.hp -= mainDmg;
+      src.roundFlags.damageTaken += mainDmg;
+      if (!silent) events.push(ev('S2', 'recoil', atk.srcUid, atk.srcUid,
+        `${unitLabel(src)} 自爆反噬：受到等量伤害 ${mainDmg}（无视防御与盾）`, { recoil: mainDmg }, 'damage'));
+    }
+    // S2.e 噬灵标记（裁定：需场上存活噬灵来源；狂暴单位不获得）
+    if (anyEnemyDmg) {
+      const soulSrc = aliveUnits(s).find(u => hasSkill(u, 'soul'));
+      if (soulSrc && !isSkillImmune(src, soulSrc) && !src.roundFlags.soulGainMark) {
+        src.roundFlags.soulGainMark = true;
+      }
+    }
+  }
+
+  // ---- S3 直接伤害技能层（M2 实装：处决 ⚑R11） ----
+  runS3(s, P, eff, events, opts);
+
+  // ---- S4 死亡清算 ----
+  for (const u of orderedUnits(s)) {
+    if (u.alive && u.hp <= 0) {
+      // 埃蒙不屈：每场限一次，死亡时改为存活、HP=60、回形态一
+      if (hasSkill(u, 'unbroken') && !u.unbrokenUsed) {
+        u.unbrokenUsed = true;
+        setFormStats(u, 'f1');
+        u.hp = 60;
+        if (!silent) events.push(ev('S4', 'unbroken', null, u.uid,
+          `${unitLabel(u)} 发动【不屈】：改为存活、HP 60、回形态一（每场限一次）`, {}, 'skill'));
+      } else {
+        u.alive = false;
+        if (!silent) events.push(ev('S4', 'death', null, u.uid,
+          `${unitLabel(u)} 阵亡`, { hp: u.hp }, 'death'));
+      }
+    }
+  }
+
+  // ---- S5 回合结束层 ----
+  runS5(s, P, eff, events, opts);          // 5.1–5.3：凯瑞甘大招 / 德哈卡形态 / 噬灵入账（M2）
+  for (const u of allUnits(s)) {           // 5.4 效果清理
+    u.roundFlags = cloneFlags(null);
+  }
+  for (const u of orderedUnits(s)) {       // 5.5 存入余额 = 有效存入量 + 退化返还；available 清零（未花未存直接损失）
+    const e = eff[u.uid];
+    if (u.alive && e) {
+      u.bank = (e.effSave || 0) + (e.refund || 0);
+      const wasted = u.available - e.declared;
+      if (!silent && u.bank > 0) events.push(ev('S5', 'save', null, u.uid,
+        `${unitLabel(u)} 存入 ${u.bank} 点至下回合`, { save: u.bank }, 'gold'));
+      if (!silent && wasted > 0) events.push(ev('S5', 'waste', null, u.uid,
+        `${unitLabel(u)} 损失未使用点数 ${wasted}`, { wasted }));
+    } else {
+      u.bank = 0; // 死亡单位当回合存入作废
+    }
+    u.available = 0;
+    const p = P[u.uid];
+    if (p) u.lastSave = p.save || 0;
+  }
+
+  // 5.6 胜负判定
+  const aAlive = s.teams.A.some(u => u.alive);
+  const bAlive = s.teams.B.some(u => u.alive);
+  if (!aAlive && !bAlive) s.winner = 'draw';
+  else if (!aAlive) s.winner = 'B';
+  else if (!bAlive) s.winner = 'A';
+  else if (s.round >= s.maxRounds) s.winner = 'draw';
+  if (s.winner && !silent) events.push(ev('S5', 'winner', null, null,
+    s.winner === 'draw' ? '双方同时全灭 → 平局' : `${s.winner === 'A' ? 'A 队' : 'B 队'} 获胜！`,
+    { winner: s.winner }, 'gold'));
+
+  // history：已揭示实际行动记录（§13.2，供战斗报告与 AI 建模）
+  const actions = {};
+  for (const u of starters) {
+    const p = P[u.uid];
+    if (!p) continue;
+    actions[u.uid] = {
+      attack: p.attack && p.attack.points > 0 ? { points: p.attack.points, target: p.attack.targetUid } : null,
+      defend: p.defend || 0,
+      save: p.save || 0,
+      skills: (p.skills || []).map(sk => sk.id),
+    };
+  }
+  s.history.push({ round: s.round, actions });
+
+  return { state: s, events };
+}
+
+/* S2.a 目标集（⚑R19/⚑R13）：迷乱优先全场 → 聚合攻击全体敌方 → 声明目标 */
+function computeTargetSet(s, atk) {
+  const confusion = aliveUnits(s).some(u => hasSkill(u, 'confusion'));
+  if (confusion) return aliveUnits(s);
+  const src = unitByUid(s, atk.srcUid);
+  if (src && src.stance === 'aggAtk' && hasSkill(src, 'aggAtk')) return aliveUnits(s).filter(u => u.team !== src.team);
+  const t = unitByUid(s, atk.targetUid);
+  return t && t.alive ? [t] : [];
+}
+
+function setFormStats(u, f) {
+  const fd = FORM_DEFS[u.formKey];
+  if (!fd || !fd.stats || !fd.stats[f]) return;
+  const st = fd.stats[f];
+  u.form = f;
+  u.maxHp = st.hp;
+  u.atk = st.atk;
+  u.income = st.income;
+}
+
+/* ---------- R1.3 被动触发（固定顺序：再生 → 生生不息 → 堕落 → 噬灵结算） ---------- */
+function runR1Passives(s, events, opts) {
+  const silent = !!opts.silent;
+  const starters = orderedUnits(s).filter(u => u.alive);
+  // ① 凯瑞甘再生：+4 HP，不超过当前形态上限
+  for (const u of starters) {
+    if (!hasSkill(u, 'regen')) continue;
+    const heal = Math.min(4, u.maxHp - u.hp);
+    if (heal > 0) u.hp += heal;
+    if (!silent && heal > 0) events.push(ev('R1', 'regen', null, u.uid,
+      `${unitLabel(u)} 再生 +${heal}（HP ${u.hp}/${u.maxHp}）`, { heal }, 'skill'));
+  }
+  // ② 刺蛇生生不息（⚑R3）：floor(上回合宣告存入量 / 4)
+  for (const u of starters) {
+    if (!hasSkill(u, 'endless')) continue;
+    const bonus = Math.floor((u.lastSave || 0) / 4);
+    if (bonus > 0) {
+      u.available += bonus;
+      if (!silent) events.push(ev('R1', 'endless', null, u.uid,
+        `${unitLabel(u)} 生生不息：额外获得 ${bonus} 点（上回合存入 ${u.lastSave}）`, { bonus }, 'gold'));
+    }
+  }
+  // ③ 埃蒙堕落：−10 HP 后按新血量检查阶段跃迁（⚑R22：血量数值不变，仅切属性）
+  for (const u of starters) {
+    if (!hasSkill(u, 'degenerate')) continue;
+    u.hp -= 10;
+    if (!silent) events.push(ev('R1', 'degenerate', null, u.uid,
+      `${unitLabel(u)} 堕落：−10 生命（HP ${u.hp}）`, { hp: u.hp }, 'skill'));
+    const fd = FORM_DEFS[u.formKey];
+    if (fd && fd.stats) {
+      const target = u.hp <= 20 ? 'f3' : (u.hp <= 40 ? 'f2' : 'f1');
+      if (target !== u.form) {
+        setFormStats(u, target);
+        if (!silent) events.push(ev('R1', 'phaseShift', null, u.uid,
+          `${unitLabel(u)} 阶段跃迁 → ${fd.labels[target]}（攻 ${u.atk}/上限 ${u.maxHp}/收入 ${u.income}）`, { form: target }, 'skill'));
+      }
+    }
+  }
+  // ④ 噬灵结算：每层自动支付 2 点；付不起则失去 round(最大生命×25%)（四舍五入）；层数永不消失
+  for (const u of starters) {
+    const marks = u.soulMarks || 0;
+    if (marks <= 0) continue;
+    const total = marks * 2;
+    if (u.available >= total) {
+      u.available -= total;
+      if (!silent) events.push(ev('R1', 'soulPay', null, u.uid,
+        `${unitLabel(u)} 噬灵结算：支付 ${total} 点（${marks} 层 × 2）`, { pay: total }, 'skill'));
+    } else {
+      const loss = Math.round(u.maxHp * 0.25);
+      u.hp -= loss;
+      if (!silent) events.push(ev('R1', 'soulPenalty', null, u.uid,
+        `${unitLabel(u)} 噬灵结算：点数不足，失去 ${loss} 生命（round(最大生命 ${u.maxHp} × 25%)）`, { loss }, 'skill'));
+    }
+  }
+}
+
+/* ---------- S1 技能控制与修正层（战斗前生效；⚑R4 单位顺序；先套形态再套 S1 修正） ---------- */
+function runS1(s, P, eff, events, opts) {
+  const silent = !!opts.silent;
+  const starters = orderedUnits(s).filter(u => u.alive && eff[u.uid]);
+
+  // PRE-STEP：形态效果（三位一体倍率 / 阿拉纳克联动 ⚑R17，先套形态再套 S1 修正）
+  for (const u of starters) {
+    const e = eff[u.uid];
+    const triDecl = (e.plan.skills || []).find(sk => sk.id === 'trinity');
+    const triForm = triDecl && triDecl.form ? triDecl.form : (u.formKey === 'trinity' ? u.form : null);
+    if (u.formKey === 'trinity' && triForm) {
+      if (triForm === 'atk') e.atk *= 2;
+      else if (triForm === 'def') e.def *= 4;
+      else if (triForm === 'sav') e.saveMult = 2;
+    }
+    if (u.formKey === 'alarak' && e.plan.formChoice) {
+      const da = e.plan.attack && e.plan.attack.points > 0 ? e.plan.attack.points : 0;
+      const dd = e.plan.defend || 0;
+      const ds = e.plan.save || 0;
+      const f = e.plan.formChoice;
+      if (f === 'ad') { e.atk += dd; e.def += da; }
+      else if (f === 'ds') { e.def += ds; e.saveGift += dd; }
+      else if (f === 'as') { e.atk += ds; e.saveGift += da; }
+    }
+  }
+
+  // 常驻机制 ①：聚合姿态更新（持久跨回合；plan.aggStance 未提供则维持原姿态）
+  for (const u of starters) {
+    const p = eff[u.uid].plan;
+    if (p.aggStance !== undefined && hasSkill(u, 'aggAtk')) u.stance = p.aggStance;
+  }
+  // 常驻机制 ②（按 ⚑R4 单位顺序）：聚合防御自动赠予 / 势如破竹自动瓦解
+  for (const u of starters) {
+    const e = eff[u.uid];
+    if (u.stance === 'aggDef' && hasSkill(u, 'aggDef')) {
+      const grant = Math.floor(e.def / 2);
+      for (const m of s.teams[u.team]) {
+        if (m.uid === u.uid || !m.alive) continue;
+        if (isSkillImmune(m, u)) {
+          if (!silent) events.push(ev('S1', 'immune', u.uid, m.uid, `${unitLabel(m)} 狂暴：免疫【聚合防御】赠予`, {}, 'skill'));
+          continue;
+        }
+        m.roundFlags.grantedDef += grant;
+        if (!silent) events.push(ev('S1', 'aggDef', u.uid, m.uid,
+          `${unitLabel(m)} 获得聚合防御 ${grant} 点（${unitLabel(u)} 防点 ${e.def} 的一半）`, { grant }, 'skill'));
+      }
+    }
+    if (hasSkill(u, 'breakthrough')) {
+      const cands = enemiesOf(s, u).filter(t => t.alive && !t.brokenDone && !isSkillImmune(t, u))
+        .sort((a, b) => b.income - a.income || teamSlotKey(a.uid) - teamSlotKey(b.uid));
+      if (cands.length) {
+        const t = cands[0];
+        t.brokenDone = true;
+        t.income = Math.max(0, t.income - 2);
+        if (!silent) events.push(ev('S1', 'breakthrough', u.uid, t.uid,
+          `${unitLabel(u)} 【势如破竹】自动瓦解：${unitLabel(t)} 收入永久 −2（现 ${t.income}）`, { income: t.income }, 'skill'));
+      }
+    }
+  }
+
+  // 逐单位处理宣告技能；冷却统一登记（含被束缚/失效宣告，实现裁定：照进冷却）
+  for (const u of starters) {
+    const decls = eff[u.uid].plan.skills || [];
+    for (const sk of decls) {
+      const def = SKILLS[sk.id];
+      if (def && def.cooldown > 0) u.cooldowns[sk.id] = def.cooldown + 1;
+    }
+    if (u.roundFlags.bound) {
+      // 束缚在其目标之前结算 → 该单位全部主动技能失效（费用照扣 ⚑R5）
+      for (const sk of decls) {
+        const def = SKILLS[sk.id];
+        if (def && !silent) events.push(ev('S1', 'skillFail', u.uid, null,
+          `${unitLabel(u)} 被束缚：【${def.name}】失效（费用照扣不退还）`, { skill: sk.id }, 'skill'));
+      }
+      continue;
+    }
+    for (const sk of decls) resolveS1Skill(s, u, sk, eff, events, opts);
+  }
+}
+
+function resolveS1Skill(s, u, sk, eff, events, opts) {
+  const silent = !!opts.silent;
+  const def = SKILLS[sk.id];
+  if (!def) return;
+  const E = eff[u.uid];
+  const targetOf = () => sk.targetUid ? unitByUid(s, sk.targetUid) : null;
+  const immuneSkip = (t, name) => {
+    if (!isSkillImmune(t, u)) return false;
+    if (!silent) events.push(ev('S1', 'immune', u.uid, t.uid,
+      `${unitLabel(t)} 狂暴：免疫【${name}】`, {}, 'skill'));
+    return true;
+  };
+  switch (sk.id) {
+    case 'trinity': { // 形态切换（倍率已在 PRE-STEP 套用）
+      if (!sk.form || !['atk', 'def', 'sav'].includes(sk.form)) return;
+      u.form = sk.form;
+      if (!silent) events.push(ev('S1', 'form', u.uid, u.uid,
+        `${unitLabel(u)} 切换三态 → ${FORM_DEFS.trinity.labels[sk.form]}`, { form: sk.form }, 'skill'));
+      return;
+    }
+    case 'insight': { // (A,B,目标)：己方 A 分配 > 目标 B 分配 → 目标 B 归零
+      const t = targetOf();
+      if (!t) return;
+      if (immuneSkip(t, def.name)) return;
+      const myVal = sk.a === 'atk' ? E.atk : (sk.a === 'def' ? E.def : E.save);
+      const tvVal = sk.b === 'atk' ? eff[t.uid].atk : (sk.b === 'def' ? eff[t.uid].def : eff[t.uid].save);
+      const abName = { atk: '攻', def: '防', save: '存' };
+      if (myVal > tvVal) {
+        eff[t.uid][sk.b] = 0;
+        if (!silent) events.push(ev('S1', 'insight', u.uid, t.uid,
+          `${unitLabel(u)} 【识破】生效（己方${abName[sk.a]} ${myVal} > 目标${abName[sk.b]} ${tvVal}）：${unitLabel(t)} 的${abName[sk.b]}分配归零`, { a: sk.a, b: sk.b }, 'skill'));
+      } else if (!silent) {
+        events.push(ev('S1', 'insightFail', u.uid, t.uid,
+          `${unitLabel(u)} 【识破】未生效（己方${abName[sk.a]} ${myVal} ≤ 目标${abName[sk.b]} ${tvVal}）`, { a: sk.a, b: sk.b }, 'skill'));
+      }
+      return;
+    }
+    case 'dodge':
+      u.roundFlags.dodging = true;
+      if (!silent) events.push(ev('S1', 'dodge', u.uid, u.uid, `${unitLabel(u)} 进入闪避（本回合免疫攻击伤害）`, {}, 'skill'));
+      return;
+    case 'shieldField':
+      u.roundFlags.shield += 20;
+      if (!silent) events.push(ev('S1', 'shield', u.uid, u.uid, `${unitLabel(u)} 获得电磁场盾 20 点`, { shield: 20 }, 'skill'));
+      return;
+    case 'plasma':
+      E.power += 3;
+      if (!silent) events.push(ev('S1', 'plasma', u.uid, u.uid, `${unitLabel(u)} 电浆束：本回合攻击力 +3（现 ${E.power}）`, { power: E.power }, 'skill'));
+      return;
+    case 'paraRay': {
+      const t = targetOf();
+      if (!t) return;
+      if (immuneSkip(t, def.name)) return;
+      eff[t.uid].power = Math.max(0, eff[t.uid].power - 2);
+      if (!silent) events.push(ev('S1', 'paraRay', u.uid, t.uid,
+        `${unitLabel(t)} 被麻痹：攻击力 −2（现 ${eff[t.uid].power}）`, { power: eff[t.uid].power }, 'skill'));
+      return;
+    }
+    case 'pierce': {
+      const t = targetOf();
+      if (!t) return;
+      if (immuneSkip(t, def.name)) return;
+      t.roundFlags.pierced = true;
+      if (!silent) events.push(ev('S1', 'pierce', u.uid, t.uid, `${unitLabel(t)} 被穿甲：本回合防御无效`, {}, 'skill'));
+      return;
+    }
+    case 'emp': { // ⚑R6：分配全无效，点数照扣
+      const t = targetOf();
+      if (!t) return;
+      if (immuneSkip(t, def.name)) return;
+      t.roundFlags.empd = true;
+      eff[t.uid].atk = 0; eff[t.uid].def = 0; eff[t.uid].save = 0;
+      if (!silent) events.push(ev('S1', 'emp', u.uid, t.uid,
+        `${unitLabel(t)} 被 EMP：本回合攻/防/存分配全部无效（点数照扣）`, {}, 'skill'));
+      return;
+    }
+    case 'corrode':
+    case 'sticky': { // 分配各 ×50% 向下取整，每层减半一次
+      const t = targetOf();
+      if (!t) return;
+      if (immuneSkip(t, def.name)) return;
+      const layers = sk.id === 'sticky' ? 1 : (sk.count || 1);
+      for (let i = 0; i < layers; i++) {
+        eff[t.uid].atk = Math.floor(eff[t.uid].atk / 2);
+        eff[t.uid].def = Math.floor(eff[t.uid].def / 2);
+        eff[t.uid].save = Math.floor(eff[t.uid].save / 2);
+      }
+      if (!silent) events.push(ev('S1', 'corrode', u.uid, t.uid,
+        `${unitLabel(t)} 被腐蚀 ${layers} 层：攻/防/存分配各减半（现 ${eff[t.uid].atk}/${eff[t.uid].def}/${eff[t.uid].save}）`, { layers }, 'skill'));
+      return;
+    }
+    case 'blaze': {
+      const t = targetOf();
+      if (!t) return;
+      if (immuneSkip(t, def.name)) return;
+      t.roundFlags.blazeLayers += (sk.count || 1);
+      if (!silent) events.push(ev('S1', 'blaze', u.uid, t.uid,
+        `${unitLabel(t)} 被点燃 ${sk.count || 1} 层：受到的伤害 ×${Math.pow(2, t.roundFlags.blazeLayers)}`, { layers: t.roundFlags.blazeLayers }, 'skill'));
+      return;
+    }
+    case 'bindRay': { // ⚑R5：主动技能失效，费用照扣；被动免疫
+      const t = targetOf();
+      if (!t) return;
+      if (immuneSkip(t, def.name)) return;
+      t.roundFlags.bound = true;
+      if (!silent) events.push(ev('S1', 'bind', u.uid, t.uid,
+        `${unitLabel(t)} 被束缚：本回合宣告的主动技能全部失效（费用照扣）`, {}, 'skill'));
+      return;
+    }
+    case 'selfdestruct':
+      E.atk *= 2; // ⚑R10：本回合攻点 ×2 用于伤害计算
+      u.roundFlags.selfdestruct = true;
+      if (!silent) events.push(ev('S1', 'selfdestruct', u.uid, u.uid, `${unitLabel(u)} 宣告【自爆】：攻点 ×2（现 ${E.atk}），主目标结算后受等量反噬`, {}, 'skill'));
+      return;
+    default:
+      return; // S3/S5 层技能（处决/大招/形态）在对应层结算
+  }
+}
+
+/* ---------- S3 直接伤害技能层：处决（⚑R11） ---------- */
+function runS3(s, P, eff, events, opts) {
+  const silent = !!opts.silent;
+  for (const u of orderedUnits(s)) {
+    if (!u.alive || !eff[u.uid]) continue;
+    for (const sk of (eff[u.uid].plan.skills || [])) {
+      if (sk.id !== 'execute') continue;
+      const t = unitByUid(s, sk.targetUid);
+      if (!t) continue;
+      if (u.roundFlags.bound) continue; // 失效已在 S1 报告
+      if (isSkillImmune(t, u)) {
+        if (!silent) events.push(ev('S3', 'immune', u.uid, t.uid, `${unitLabel(t)} 狂暴：免疫【处决】`, {}, 'skill'));
+        continue;
+      }
+      const loss = Math.round(t.maxHp * 0.5);
+      t.hp -= loss;
+      t.roundFlags.damageTaken += loss;
+      if (!silent) events.push(ev('S3', 'execute', u.uid, t.uid,
+        `${unitLabel(u)} 释放【处决】：${unitLabel(t)} 失去 ${loss} 生命（最大生命 ${t.maxHp} × 50%，不吃防御/盾）`, { loss }, 'damage'));
+    }
+  }
+}
+
+/* ---------- S5.1–5.3：凯瑞甘大招 / 德哈卡形态 / 噬灵入账 ---------- */
+function runS5(s, P, eff, events, opts) {
+  const silent = !!opts.silent;
+  // 5.1 凯瑞甘大招（⚑R23：仅统计 S1–S4 伤害；⚑R2：宣告者死亡作废）
+  for (const u of orderedUnits(s)) {
+    if (!eff[u.uid]) continue;
+    const decl = (eff[u.uid].plan.skills || []).find(sk => sk.id === 'ult');
+    if (!decl || u.roundFlags.bound) continue;
+    if (!u.alive) {
+      if (!silent) events.push(ev('S5', 'ultVoid', null, u.uid,
+        `${unitLabel(u)} 已阵亡，【致命突袭】作废（⚑R2）`, {}, 'skill'));
+      continue;
+    }
+    if (u.roundFlags.damageTaken > 0) {
+      if (!silent) events.push(ev('S5', 'ultFail', u.uid, null,
+        `${unitLabel(u)} 的【致命突袭】落空：本回合已受到伤害（${u.roundFlags.damageTaken}）`, {}, 'skill'));
+      continue;
+    }
+    const t = unitByUid(s, decl.targetUid);
+    if (!t) continue;
+    if (isSkillImmune(t, u)) {
+      if (!silent) events.push(ev('S5', 'immune', u.uid, t.uid, `${unitLabel(t)} 狂暴：免疫【致命突袭】`, {}, 'skill'));
+      continue;
+    }
+    t.hp -= 24;
+    t.roundFlags.damageTaken += 24;
+    if (!silent) events.push(ev('S5', 'ult', u.uid, t.uid,
+      `${unitLabel(u)} 的【致命突袭】命中：${unitLabel(t)} 失去 24 生命（未受任何伤害，不吃防御/盾）`, { loss: 24 }, 'damage'));
+  }
+  // 5.2 德哈卡进化/超进化/退化（⚑R2：宣告者存活才生效；⚑R12 退化返还）
+  for (const u of orderedUnits(s)) {
+    const decls = eff[u.uid]
+      ? (eff[u.uid].plan.skills || []).filter(sk => sk.id === 'evolve' || sk.id === 'superEvolve' || sk.id === 'devolve')
+      : [];
+    if (!decls.length) continue;
+    if (!u.alive) {
+      if (!silent) events.push(ev('S5', 'formFail', null, u.uid, `${unitLabel(u)} 已阵亡，形态技能作废`, {}, 'skill'));
+      continue;
+    }
+    if (u.roundFlags.bound) continue; // 失效已在 S1 报告
+    for (const sk of decls) {
+      if (sk.id === 'evolve') {
+        setFormStats(u, 'f2');
+        u.hp = u.maxHp;
+        if (!silent) events.push(ev('S5', 'evolve', null, u.uid,
+          `${unitLabel(u)} 进化 → ${FORM_DEFS.dehaka.labels.f2}（血量重置 ${u.hp}/${u.maxHp}，攻 ${u.atk}，收入 ${u.income}）`, { form: 'f2' }, 'skill'));
+      } else if (sk.id === 'superEvolve') {
+        setFormStats(u, 'f3');
+        u.hp = u.maxHp;
+        if (!silent) events.push(ev('S5', 'evolve', null, u.uid,
+          `${unitLabel(u)} 超进化 → ${FORM_DEFS.dehaka.labels.f3}（血量重置 ${u.hp}/${u.maxHp}，攻 ${u.atk}，收入 ${u.income}）`, { form: 'f3' }, 'skill'));
+      } else if (sk.id === 'devolve') {
+        const refund = u.form === 'f2' ? 6 : (u.form === 'f3' ? 12 : 0);
+        setFormStats(u, 'f1');
+        u.hp = Math.min(u.hp, u.maxHp); // 上限 20，血量截断
+        eff[u.uid].refund += refund;
+        if (!silent) events.push(ev('S5', 'devolve', null, u.uid,
+          `${unitLabel(u)} 退化 → ${FORM_DEFS.dehaka.labels.f1}（血量截断 ${u.hp}/${u.maxHp}，返还 ${refund} 点入下回合池）`, { refund }, 'gold'));
+      }
+    }
+  }
+  // 5.3 噬灵入账（每回合至多 +1）
+  for (const u of orderedUnits(s)) {
+    if (u.roundFlags.soulGainMark) {
+      u.roundFlags.soulGainMark = false;
+      u.soulMarks += 1;
+      if (!silent) events.push(ev('S5', 'soulGain', null, u.uid,
+        `${unitLabel(u)} 获得 1 层噬灵（共 ${u.soulMarks} 层）`, { soulMarks: u.soulMarks }, 'skill'));
+    }
+  }
+}
+
+function playRound(state, plans, opts = {}) {
+  const r1 = beginRound(state, opts);
+  return resolveRound(r1.state, plans, opts);
+}
+</script>
+
+<!-- ============================================================
+     AI 层：纯函数规划器（M5 实装，禁止触碰 DOM/window）
+============================================================ -->
+<script data-layer="AI">
+'use strict';
+/* ================= AI 对手（§13，1v1 专属，纯函数，rng 可注入） ================= */
+
+const AI_PARAMS = { // §13.6 参数表（最终裁定）
+  easy:   { lambda: 0.5,  temperature: 0.35, noise: true,  counterShortcutChance: 0.30, historyBlend: 0   },
+  normal: { lambda: 0.8,  temperature: 0.15, noise: false, counterShortcutChance: 0,    historyBlend: 0   },
+  hard:   { lambda: 0.95, temperature: 0.05, noise: false, counterShortcutChance: 0,    historyBlend: 0.4 },
+};
+
+function planWithAI(state, difficulty, rng) {
+  const side = state.aiPlayer || 'B';
+  const params = AI_PARAMS[difficulty] || AI_PARAMS.normal;
+  const enemySide = side === 'A' ? 'B' : 'A';
+  const enemies = state.teams[enemySide].filter(u => u.alive);
+  const plans = {};
+  for (const unit of state.teams[side]) {
+    if (!unit.alive) continue;
+    const cands = aiPlanForUnit(state, unit, side, difficulty, params, rng);
+    plans[unit.uid] = aiChoose(state, unit, side, enemies, cands, difficulty, params, rng);
+  }
+  return plans;
+}
+
+/* ---------- §13.2 感知：近 N 回合已揭示行动 ---------- */
+function aiRecentActions(state, uid, n) {
+  return state.history.slice(-n).map(h => h.actions[uid]).filter(Boolean);
+}
+
+/* ---------- §13.3 对手建模 q ---------- */
+function aiOpponentQ(state, enemy, myUnits, mySide, difficulty, params, rng) {
+  let wAtk = 1.0 + 0.15 * enemy.atk;
+  let wSave = 1.0 + Math.max(0, 8 - enemy.income) * 0.3;
+  let wDef = 0.8 + Math.max(0, enemy.income - 6) * 0.1;
+  const usableSkills = enemy.skills.filter(id => {
+    const d = SKILLS[id];
+    return d && d.type === 'active' && !(enemy.cooldowns[id] > 0) && d.cost <= enemy.available;
+  });
+  let wSkill = usableSkills.length ? 1.2 : 0;
+
+  // 处境乘子
+  const aliveMine = myUnits.filter(u => u.alive);
+  if (aliveMine.length) {
+    const killPts = Math.min(...aliveMine.map(u => Math.ceil(u.hp / Math.max(1, enemy.atk))));
+    if (enemy.available >= killPts) wAtk *= 3;
+  }
+  if (enemy.hp < enemy.maxHp * 0.35) { wDef *= 2.5; wAtk *= 0.6; }
+  const lastRound = state.history[state.history.length - 1];
+  const last = lastRound ? lastRound.actions[enemy.uid] : null;
+  if (last && last.save >= 2 * enemy.income) wAtk *= 2;
+  if (lastRound) {
+    const attackedByMe = Object.entries(lastRound.actions).some(([uid, a]) =>
+      uid[0] === mySide && a.attack && a.attack.target === enemy.uid);
+    if (attackedByMe) wDef *= 1.8;
+    if (last && last.attack) {
+      const tgtActions = lastRound.actions[last.attack.target];
+      if (tgtActions && (tgtActions.defend || 0) >= (last.attack.points || 0)) wAtk *= 0.7;
+    }
+  }
+  if (usableSkills.length === enemy.skills.filter(id => SKILLS[id] && SKILLS[id].type === 'active').length && usableSkills.length) wSkill *= 1.5;
+
+  let base = aiNormalize4({ atk: wAtk, def: wDef, save: wSave, skill: wSkill });
+  if (params.noise) { // easy：分量 ×U(0.6,1.4) 后归一化
+    base = aiNormalize4({
+      atk: base.atk * (0.6 + 0.8 * rng()),
+      def: base.def * (0.6 + 0.8 * rng()),
+      save: base.save * (0.6 + 0.8 * rng()),
+      skill: base.skill * (0.6 + 0.8 * rng()),
+    });
+  }
+  if (params.historyBlend > 0) { // hard：0.6×q_base + 0.4×q_hist（样本 <2 退化为 q_base）
+    const rec = aiRecentActions(state, enemy.uid, 3);
+    if (rec.length >= 2) {
+      const counts = { atk: 0, def: 0, save: 0, skill: 0 };
+      for (const a of rec) {
+        if (a.attack && a.attack.points > 0) counts.atk++;
+        if ((a.defend || 0) > 0) counts.def++;
+        if ((a.save || 0) > 0) counts.save++;
+        if ((a.skills || []).length) counts.skill++;
+      }
+      const qh = aiNormalize4(counts);
+      const b = params.historyBlend;
+      base = aiNormalize4({
+        atk: (1 - b) * base.atk + b * qh.atk,
+        def: (1 - b) * base.def + b * qh.def,
+        save: (1 - b) * base.save + b * qh.save,
+        skill: (1 - b) * base.skill + b * qh.skill,
+      });
+    }
+  }
+  return base;
+}
+
+function aiNormalize4(q) {
+  const t = q.atk + q.def + q.save + q.skill;
+  if (!(t > 0)) return { atk: 0.25, def: 0.25, save: 0.25, skill: 0.25 };
+  return { atk: q.atk / t, def: q.def / t, save: q.save / t, skill: q.skill / t };
+}
+
+/* ---------- §13.4 候选生成（≤15，去重 + 启发式剪枝） ---------- */
+function aiPlanForUnit(state, unit, side, difficulty, params, rng) {
+  const enemySide = side === 'A' ? 'B' : 'A';
+  const enemies = state.teams[enemySide].filter(u => u.alive);
+  const V = unit.available;
+  const isAlarak = unit.formKey === 'alarak';
+  const formFor = () => V >= 4 ? 'ad' : 'ds'; // 阿拉纳克形态启发式
+  const mk = (fields, prio) => {
+    const plan = {
+      unitUid: unit.uid,
+      formChoice: isAlarak ? formFor() : undefined,
+      attack: null, defend: 0, save: 0, skills: [],
+      ...fields,
+    };
+    if (hasSkill(unit, 'aggAtk')) plan.aggStance = plan.attack ? 'aggAtk' : (plan.defend > 0 ? 'aggDef' : undefined); // 常驻姿态启发式
+    return { plan, prio };
+  };
+  const cands = [];
+  const seen = new Set();
+  const push = (cand) => {
+    const key = JSON.stringify([cand.plan.formChoice, cand.plan.aggStance, cand.plan.attack, cand.plan.defend, cand.plan.save, cand.plan.skills]);
+    if (seen.has(key)) return;
+    seen.add(key);
+    cands.push(cand);
+  };
+
+  // ① 全押攻 → 每个存活敌方
+  for (const e of enemies) push(mk({ attack: { points: V, targetUid: e.uid } }, 60));
+  // ② 斩杀攻：points = ceil((目标hp + q_防×目标available) / atk)（按 §13.4 公式）
+  const qEnemy = aiOpponentQ(state, enemies[0], state.teams[side], side, difficulty, params, rng);
+  for (const e of enemies) {
+    const pts = Math.ceil((e.hp + qEnemy.def * e.available) / Math.max(1, unit.atk));
+    if (pts > 0 && pts <= V) push(mk({ attack: { points: pts, targetUid: e.uid } }, 100));
+  }
+  // ③④ 全押防 / 全押存（hard 攒爆节奏提权）
+  const hoardBoost = difficulty === 'hard' && unit.income <= 4 && V < 3 * unit.income;
+  push(mk({ defend: V }, hoardBoost ? 70 : 20));
+  push(mk({ save: V }, hoardBoost ? 70 : 10));
+  // ⑤⑥ 对半
+  const half = Math.floor(V / 2);
+  if (half > 0 && enemies.length) {
+    push(mk({ attack: { points: half, targetUid: enemies[0].uid }, defend: half }, 40));
+    push(mk({ attack: { points: half, targetUid: enemies[0].uid }, save: half }, 30));
+  }
+  // ⑦ 技能组合（每个可用技能 × 纯技能 / +全押攻 / +全押存）
+  const skillTarget = () => { // 目标类默认指向 q_技 最高敌方（1v1 即唯一敌方）
+    let best = enemies[0];
+    for (const e of enemies) if (aiOpponentQ(state, e, state.teams[side], side, difficulty, params, rng).skill > (aiOpponentQ(state, best, state.teams[side], side, difficulty, params, rng).skill || 0)) best = e;
+    return best;
+  };
+  const st = enemies.length ? skillTarget() : null;
+  for (const id of unit.skills) {
+    const def = SKILLS[id];
+    if (!def || (def.type !== 'active' && def.type !== 'form')) continue;
+    if ((unit.cooldowns[id] || 0) > 0) continue;
+    if (def.cost > V) continue;
+    let targetUid;
+    if (def.target === 'enemy') {
+      targetUid = (st || enemies[0]).uid;
+      if (difficulty === 'hard') { // §13.7 冷却纪律
+        const t = unitByUid(state, targetUid);
+        if (t && hasSkill(t, 'berserk')) continue;                       // 不对狂暴单位宣告
+        if (id === 'bindRay' && qEnemy.skill <= 0.4) continue;           // 束缚需目标常用技能
+        if (id === 'emp' && enemies[0].available < 8) continue;          // EMP 留给大点数回合
+      }
+    }
+    const decl = { id, targetUid, count: 1 };
+    if (id === 'trinity') decl.form = 'atk';
+    if (id === 'insight') { decl.a = 'atk'; decl.b = 'def'; }
+    if (id === 'ult' && difficulty === 'hard') continue; // 凯瑞甘纪律：大招只与防/存组合（⑧生成）
+    const cost = def.cost || 0;
+    const rest = V - cost;
+    push(mk({ skills: [decl] }, 50));                                     // 纯技能
+    if (rest > 0 && enemies.length) push(mk({ attack: { points: rest, targetUid: enemies[0].uid }, skills: [decl] }, 80));
+    if (rest > 0) push(mk({ save: rest, skills: [decl] }, 55));
+    if (id === 'trinity') { // 存形态配全押存
+      push(mk({ save: V, skills: [{ id, form: 'sav' }] }, 45));
+    }
+  }
+  // ⑧ 纪律候选（hard）：攒爆存已提权；凯瑞甘大招 + 全押防/存
+  if (difficulty === 'hard' && unit.skills.includes('ult') && !(unit.cooldowns.ult > 0) && V >= SKILLS.ult.cost) {
+    const rest = V - SKILLS.ult.cost;
+    const decl = { id: 'ult', targetUid: enemies.length ? enemies[0].uid : undefined };
+    push(mk({ defend: rest, skills: [decl] }, 75));
+    push(mk({ save: rest, skills: [decl] }, 70));
+  }
+
+  // 去重后剪枝 ≤15：validatePlan 过滤非法，按优先级保留，交给评估层模拟
+  return cands
+    .filter(c => validatePlan(state, side, { [unit.uid]: c.plan }).ok)
+    .sort((a, b) => b.prio - a.prio)
+    .slice(0, 15)
+    .map(c => c.plan);
+}
+
+/* ---------- §13.5 评估层：克隆 state 跑真 resolveRound 填收益矩阵 ---------- */
+function aiOpponentPlans(state, enemies, side, q) {
+  const myUnits = state.teams[side].filter(u => u.alive);
+  const lowestHp = myUnits.slice().sort((a, b) => a.hp - b.hp)[0] || myUnits[0];
+  const types = ['atk', 'def', 'save', 'skill'].sort((a, b) => q[b] - q[a]).slice(0, 3);
+  const list = [];
+  for (const e of enemies) {
+    for (const ty of types) {
+      const plan = {
+        unitUid: e.uid,
+        formChoice: e.formKey === 'alarak' ? 'ad' : undefined,
+        attack: null, defend: 0, save: 0, skills: [],
+      };
+      if (ty === 'atk') plan.attack = { points: e.available, targetUid: lowestHp.uid };
+      else if (ty === 'def') plan.defend = e.available;
+      else if (ty === 'save') plan.save = e.available;
+      else {
+        const usable = e.skills.map(id => ({ id, d: SKILLS[id] }))
+          .find(x => x.d && x.d.type === 'active' && !(e.cooldowns[x.id] > 0) && (x.d.cost || 0) <= e.available);
+        if (usable) {
+          const decl = { id: usable.id, count: 1 };
+          if (usable.d.target === 'enemy') decl.targetUid = lowestHp.uid;
+          if (usable.id === 'trinity') decl.form = 'atk';
+          if (usable.id === 'insight') { decl.a = 'atk'; decl.b = 'def'; }
+          plan.skills = [decl];
+          const rest = e.available - (usable.d.cost || 0);
+          if (rest > 0) plan.save = rest;
+        } else {
+          plan.attack = { points: e.available, targetUid: lowestHp.uid };
+        }
+      }
+      if (hasSkill(e, 'aggAtk')) plan.aggStance = plan.attack ? 'aggAtk' : (plan.defend > 0 ? 'aggDef' : undefined);
+      list.push({ type: ty, plan });
+    }
+  }
+  return list;
+}
+
+function aiUtility(before, after, side) {
+  const enemySide = side === 'A' ? 'B' : 'A';
+  const power = (st, sd) => st.teams[sd].reduce((a, u) =>
+    a + (u.alive ? u.hp : 0) + u.atk * 8 + u.income * 12 + u.bank * 0.5, 0);
+  let U = (power(after, side) - power(before, side)) - (power(after, enemySide) - power(before, enemySide));
+  const find = (st, sd, uid) => st.teams[sd].find(u => u.uid === uid);
+  for (const u of before.teams[enemySide]) {
+    const au = find(after, enemySide, u.uid);
+    if (u.alive && au && !au.alive) U += 25 * (u.income + u.atk);
+  }
+  for (const u of before.teams[side]) {
+    const au = find(after, side, u.uid);
+    if (u.alive && au && !au.alive) U -= 25 * (u.income + u.atk);
+  }
+  return U;
+}
+
+/* ---------- §13.6 决策层：期望 + min 保底 + softmax 温度采样 ---------- */
+function aiChoose(state, unit, side, enemies, cands, difficulty, params, rng) {
+  const fallback = { unitUid: unit.uid, formChoice: unit.formKey === 'alarak' ? 'ad' : undefined, attack: null, defend: 0, save: 0, skills: [] };
+  if (!cands.length || !enemies.length) return fallback;
+  const q = aiOpponentQ(state, enemies[0], state.teams[side], side, difficulty, params, rng);
+
+  // easy：30% 回合跳过模拟，直接反克最高 q 行动（克攻→防，克防→存，克存→攻）
+  if (params.counterShortcutChance > 0 && rng() < params.counterShortcutChance) {
+    const top = ['atk', 'def', 'save'].sort((a, b) => q[b] - q[a])[0];
+    const want = top === 'atk' ? 'def' : (top === 'def' ? 'save' : 'atk');
+    const V = unit.available;
+    const hit = cands.find(c => want === 'def' ? (c.defend === V && !c.attack)
+      : want === 'save' ? (c.save === V && !c.attack)
+      : (c.attack && c.attack.points === V));
+    if (hit) return hit;
+  }
+
+  const simBase = cloneState(state, true);
+  const oppVariants = aiOpponentPlans(state, enemies, side, q);
+  const qSum = oppVariants.reduce((a, v) => a + q[v.type], 0) || 1;
+  const Us = cands.map(c => oppVariants.map(v => {
+    const merged = { [unit.uid]: c, [v.plan.unitUid]: v.plan };
+    const { state: after } = resolveRound(simBase, merged, { silent: true });
+    return aiUtility(state, after, side);
+  }));
+  const scores = Us.map(row => {
+    const exp = oppVariants.reduce((a, v, j) => a + (q[v.type] / qSum) * row[j], 0);
+    return params.lambda * exp + (1 - params.lambda) * Math.min(...row);
+  });
+  return cands[aiSoftmaxPick(scores, params.temperature, rng)];
+}
+
+function aiSoftmaxPick(scores, T, rng) {
+  const max = Math.max(...scores);
+  const ws = scores.map(s => Math.exp((s - max) / Math.max(0.0001, T)));
+  const total = ws.reduce((a, b) => a + b, 0);
+  let r = rng() * total;
+  for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; }
+  return ws.length - 1;
+}
+</script>
+
+<!-- ============================================================
+     UI 层：屏幕渲染与交互（唯一允许触碰 DOM 的层）
+============================================================ -->
+<script data-layer="UI">
+'use strict';
+
+const UI = (() => {
+  const $ = id => document.getElementById(id);
+  const app = {
+    screen: 'title',
+    mode: '1v1',
+    aiEnabled: false,
+    aiDifficulty: 'normal',
+    game: null,
+    pendingPlans: {},     // { uid: plan } 本回合已确认的规划（双方）
+    currentPlayer: 'A',
+    planQueue: [],        // 当前玩家待规划的单位 uid
+    planIdx: 0,
+    drafts: {},           // 当前玩家逐单位草稿
+    lastEvents: [],
+    helpReturn: 'title',
+    select: { team: 'A', picks: { A: [], B: [] } },
+    replicaQueue: [],     // 待选复制目标的复制者 uid
+    replicas: [],         // [{ unit, target }]
+    handoffGo: null,
+  };
+
+  function show(name) {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    $('screen-' + name).classList.add('active');
+    app.screen = name;
+  }
+
+  /* ---------- 通用工具 ---------- */
+  function findUnit(uid) { return app.game ? unitByUid(app.game, uid) : null; }
+  function playerName(t) {
+    if (t === 'A') return '玩家 1（A 队）';
+    return app.aiEnabled ? 'AI 对手（B 队）' : '玩家 2（B 队）';
+  }
+  function formLabel(u) {
+    const fd = u.formKey ? FORM_DEFS[u.formKey] : null;
+    return fd && fd.labels && fd.labels[u.form] ? fd.labels[u.form] : '';
+  }
+  function fmtPicks(arr) {
+    return arr.length ? arr.map(id => CHARACTERS[id].name).join('、') : '（未选）';
+  }
+
+  /* ---------- 通用弹窗 ---------- */
+  function showModal({ title, body, buttons }) {
+    $('modal-title').textContent = title;
+    $('modal-body').innerHTML = body;
+    const acts = $('modal-actions');
+    acts.innerHTML = '';
+    for (const b of buttons) {
+      const btn = document.createElement('button');
+      btn.className = b.cls || 'ghost';
+      btn.textContent = b.text;
+      btn.addEventListener('click', () => { $('modal-mask').style.display = 'none'; if (b.onClick) b.onClick(); });
+      acts.appendChild(btn);
+    }
+    $('modal-mask').style.display = 'flex';
+  }
+
+  /* ---------- 战场总览（炉石式大卡，规划/结算常驻顶部） ---------- */
+  function renderBattlefield(id) {
+    const card = u => {
+      const hpPct = u.maxHp > 0 ? Math.max(0, Math.min(100, Math.round(u.hp / u.maxHp * 100))) : 0;
+      const marks = Object.entries(u.cooldowns).filter(([, n]) => n > 0)
+        .map(([sid, n]) => `<span class="mark bad">⏱${SKILLS[sid] ? SKILLS[sid].name : sid} ${n}</span>`).join('');
+      const stanceMark = u.stance ? `<span class="mark gold">聚合${u.stance === 'aggAtk' ? '攻击' : '防御'}姿态</span>` : '';
+      const soulMark = (u.soulMarks || 0) > 0 ? `<span class="mark bad">噬灵 ×${u.soulMarks}</span>` : '';
+      return `<div class="bcard ${u.alive ? '' : 'dead'}">
+        <div class="bc-head"><span class="bc-icon">${u.icon}</span><span>${u.name}</span>${formLabel(u) ? `<span class="bc-form">${formLabel(u)}</span>` : ''}</div>
+        <div class="bc-hpbar"><div class="hp-fill" style="width:${hpPct}%"></div></div>
+        <div class="bc-stats">
+          <span class="bstat atk" title="攻击力">⚔ ${u.atk}</span>
+          <span class="bstat hp" title="生命 / 上限">❤ ${u.hp}<small>/${u.maxHp}</small></span>
+          <span class="bstat inc" title="每回合收入">💎 ${u.income}</span>
+        </div>
+        <div class="bc-econ"><span>可用 <b>${u.available}</b></span><span>存入 <b>${u.bank}</b></span></div>
+        <div class="bc-marks">${stanceMark}${soulMark}${marks}</div>
+        ${u.alive ? '' : '<div class="bc-deadtag">阵亡</div>'}
+      </div>`;
+    };
+    $(id).innerHTML = `<div class="battlefield">
+      <div class="bf-side"><div class="bf-label">🅰 A 队</div><div class="bf-cards">${app.game.teams.A.map(card).join('')}</div></div>
+      <div class="bf-vs">VS</div>
+      <div class="bf-side"><div class="bf-label">🅱 B 队</div><div class="bf-cards">${app.game.teams.B.map(card).join('')}</div></div>
+    </div>`;
+  }
+
+  /* ---------- 标题屏 ---------- */
+  function initTitle() {
+    $('mode-row').addEventListener('click', e => {
+      const btn = e.target.closest('.mode-btn');
+      if (!btn) return;
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      app.mode = btn.dataset.mode;
+      $('ai-options').classList.toggle('visible', app.mode === '1v1');
+      if (app.mode !== '1v1') $('ai-enabled').checked = false;
+    });
+    $('btn-start').addEventListener('click', () => {
+      app.aiEnabled = app.mode === '1v1' && $('ai-enabled').checked;
+      app.aiDifficulty = document.querySelector('input[name="ai-diff"]:checked').value;
+      startSelect();
+    });
+    $('btn-help').addEventListener('click', () => { app.helpReturn = 'title'; renderHelp(); show('help'); });
+    $('btn-help-back').addEventListener('click', () => show(app.helpReturn));
+    $('btn-roster').addEventListener('click', () => { renderRoster(); show('roster'); });
+    $('btn-roster-back').addEventListener('click', () => show('title'));
+  }
+
+  /* ---------- 角色图鉴 ---------- */
+  function renderRoster() {
+    $('roster-grid').innerHTML = Object.keys(CHARACTERS).map(id => {
+      const c = CHARACTERS[id];
+      const skills = skillFullHtml(c);
+      return `<div class="roster-item">
+        <div class="ri-head"><span>${c.icon}</span>${c.name}<span class="ri-tier cc-tier">${c.tier}</span></div>
+        <div class="ri-stats"><span>攻击力 <b>${c.atk}</b></span><span>生命 <b>${c.hp}</b></span><span>收入 <b>${c.income}</b></span></div>
+        <div class="ri-skills">${skills || '<span style="color:var(--text-dim)">无技能</span>'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function resetGame() {
+    app.game = null;
+    app.pendingPlans = {};
+    app.drafts = {};
+    app.lastEvents = [];
+    app.currentPlayer = 'A';
+    app.planQueue = [];
+    app.planIdx = 0;
+    app.select = { team: 'A', picks: { A: [], B: [] } };
+    app.replicaQueue = [];
+    app.replicas = [];
+    app.handoffGo = null;
+    app.aiThinking = false;
+    if (app.aiTimer) { clearTimeout(app.aiTimer); app.aiTimer = null; }
+    const ai = $('ai-thinking');
+    if (ai) ai.style.display = 'none';
+  }
+
+  /* ---------- 选人屏 ---------- */
+  function startSelect() {
+    resetGame();
+    renderSelect();
+    show('select');
+  }
+
+  function skillBrief(c) {
+    return c.skills.map(s => SKILLS[s].name).join(' · ') || (c.formKey ? '形态机制' : '—');
+  }
+
+  function skillFullHtml(c) {
+    const skills = c.skills.map(sid => {
+      const d = SKILLS[sid];
+      return `<div class="cd-skill"><b>${d.name}</b> <span class="meta">[${d.cost ? `费用 ${d.cost}${d.stackable ? '/层' : ''}` : '免费'}｜${d.cooldown ? `冷却 ${d.cooldown}` : '无冷却'}｜${d.type === 'passive' ? '被动/常驻' : d.type === 'form' ? '形态' : d.type === 'special' ? '特殊' : '主动'}]</span><br>${d.desc}</div>`;
+    });
+    if (c.formKey === 'alarak') {
+      skills.push(`<div class="cd-skill"><b>形态选择</b> <span class="meta">[免费｜每回合必选｜三选一]</span><br>①攻防一体：宣告攻 X 同时获得 X 防点、宣告防 X 同时获得 X 攻点　②防存一体：宣告防 X 同时存入 X、宣告存 X 同时获得 X 防点　③攻存一体：宣告攻 X 同时存入 X、宣告存 X 同时获得 X 攻点（按攻 2 计伤害）</div>`);
+    }
+    return skills.join('');
+  }
+
+  function renderCharDetail(id) {
+    const el = $('char-detail');
+    const c = CHARACTERS[id];
+    if (!c) { el.innerHTML = '<span style="color:var(--text-dim)">点击任意角色卡，此处显示完整属性与技能说明</span>'; return; }
+    el.innerHTML = `<div class="cd-name">${c.icon} ${c.name}　<span style="font-size:12px;color:var(--text-dim)">${c.tier}</span></div>
+      <div class="cd-stats">攻击力 <b style="color:#ffab7e">${c.atk}</b> ｜ 生命 <b style="color:#7ef0ae">${c.hp}</b> ｜ 收入 <b style="color:var(--gold)">${c.income}</b></div>
+      ${skillFullHtml(c) || '<span style="color:var(--text-dim)">无技能</span>'}`;
+  }
+
+  function renderSelect() {
+    const cur = app.select.team;
+    const n = MODE_UNIT_COUNT[app.mode];
+    $('select-hint').textContent =
+      `请 ${playerName(cur)} 选择 ${n} 名角色（同队不可重复；点击已选角色可取消）　·　⚔ 低阶（L）与高阶（H）差距较大，建议同阶对战`;
+    const grid = $('char-grid');
+    grid.innerHTML = '';
+    for (const id of Object.keys(CHARACTERS)) {
+      const c = CHARACTERS[id];
+      const pickedHere = app.select.picks[cur].includes(id);
+      // §5：同队去重；双方之间可以镜像同角色（跨队不互斥）
+      const el = document.createElement('div');
+      el.className = 'char-card' + (pickedHere ? ' selected' : '');
+      el.dataset.charId = id;
+      el.innerHTML = `
+        <div class="cc-head"><span class="cc-icon">${c.icon}</span>${c.name}<span class="cc-tier">${c.tier}</span></div>
+        <div class="cc-stats"><span>攻 <b>${c.atk}</b></span><span>血 <b>${c.hp}</b></span><span>收入 <b>${c.income}</b></span></div>
+        <div class="cc-skills">${skillBrief(c)}</div>`;
+      el.title = c.skills.map(s => `${SKILLS[s].name}：${SKILLS[s].desc}`).join('\n') || '（形态机制，见下方详情）';
+      grid.appendChild(el);
+    }
+    $('lineup-strip').innerHTML =
+      `A 队：${fmtPicks(app.select.picks.A)}　｜　B 队：${fmtPicks(app.select.picks.B)}`;
+    $('btn-select-confirm').disabled = app.select.picks[cur].length !== n;
+    $('btn-select-confirm').textContent = cur === 'A' ? '确认阵容，交对方选择' : '确认阵容，开始对局';
+  }
+
+  function onPickChar(id) {
+    const cur = app.select.team, n = MODE_UNIT_COUNT[app.mode];
+    const picks = app.select.picks[cur];
+    const i = picks.indexOf(id);
+    if (i >= 0) picks.splice(i, 1);
+    else if (picks.length < n) picks.push(id);
+    renderCharDetail(id); // 无论选/取消，都在下方详情面板展示完整技能说明
+    renderSelect();
+  }
+
+  function confirmSelect() {
+    if (app.select.team === 'A') {
+      if (app.aiEnabled) {
+        // AI 对手自动选人（UI 层随机 n 个不同角色，不受引擎确定性约束）
+        const ids = Object.keys(CHARACTERS);
+        const n = MODE_UNIT_COUNT[app.mode];
+        while (app.select.picks.B.length < n) {
+          const id = ids[Math.floor(Math.random() * ids.length)];
+          if (!app.select.picks.B.includes(id)) app.select.picks.B.push(id);
+        }
+        afterSelection();
+        return;
+      }
+      app.select.team = 'B';
+      renderSelect();
+    } else {
+      afterSelection();
+    }
+  }
+
+  /* ---------- 复制目标选择屏（复制者在场时，战斗开始前公开选择） ---------- */
+  function afterSelection() {
+    const reps = [];
+    for (const t of ['A', 'B']) {
+      app.select.picks[t].forEach((id, slot) => { if (CHARACTERS[id].replicator) reps.push(t + slot); });
+    }
+    app.replicaQueue = reps;
+    app.replicas = [];
+    if (reps.length) {
+      // AI 持有的复制者自动选择目标（确定性规则：敌方收入最高的非复制者单位）
+      if (app.aiEnabled) {
+        while (app.replicaQueue.length && app.replicaQueue[0][0] === 'B') {
+          const choices = [];
+          app.select.picks.A.forEach((id, slot) => { if (!CHARACTERS[id].replicator) choices.push({ uid: 'A' + slot, income: CHARACTERS[id].income }); });
+          choices.sort((a, b) => b.income - a.income);
+          if (!choices.length) break;
+          app.replicas.push({ unit: app.replicaQueue.shift(), target: choices[0].uid });
+        }
+      }
+      if (app.replicaQueue.length) { renderCopyChoice(); show('copy'); }
+      else startMatch();
+    } else startMatch();
+  }
+
+  function renderCopyChoice() {
+    const repUid = app.replicaQueue[0];
+    $('copy-hint').textContent =
+      `复制者（${repUid}）公开选择复制目标：复制其当前形态的攻/上限/收入与全部技能（含被动）；不能选择复制者（含自己）`;
+    let html = '<div class="char-grid">';
+    for (const t of ['A', 'B']) {
+      app.select.picks[t].forEach((id, slot) => {
+        const uid = t + slot;
+        if (CHARACTERS[id].replicator) return;
+        const c = CHARACTERS[id];
+        html += `<div class="char-card" data-uid="${uid}">
+          <div class="cc-head"><span class="cc-icon">${c.icon}</span>${c.name}<span class="cc-tier">${uid}${t === repUid[0] ? ' · 同队' : ' · 敌方'}</span></div>
+          <div class="cc-stats"><span>攻 <b>${c.atk}</b></span><span>血 <b>${c.hp}</b></span><span>收入 <b>${c.income}</b></span></div>
+        </div>`;
+      });
+    }
+    $('copy-panel').innerHTML = html + '</div>';
+  }
+
+  function onCopyPick(uid) {
+    app.replicas.push({ unit: app.replicaQueue.shift(), target: uid });
+    if (app.replicaQueue.length) renderCopyChoice();
+    else startMatch();
+  }
+
+  /* ---------- 回合循环 ---------- */
+  function startMatch() {
+    app.game = createGame(app.mode, app.select.picks.A, app.select.picks.B, {
+      aiPlayer: app.aiEnabled ? 'B' : null,
+      replicas: app.replicas,
+    });
+    startRound();
+  }
+
+  function startRound() {
+    const r = beginRound(app.game);
+    app.game = r.state;
+    app.pendingPlans = {};
+    app.drafts = {};
+    app.currentPlayer = 'A';
+    beginPlanning();
+  }
+
+  function beginPlanning() {
+    if (app.currentPlayer === 'B' && app.aiEnabled) {
+      const aiPlans = planWithAI(app.game, app.aiDifficulty, Math.random); // 计算先行同步完成
+      Object.assign(app.pendingPlans, aiPlans);
+      showAiThinking(); // 0.8–1.5s 纯视觉延迟，可跳过，不影响结果
+      return;
+    }
+    app.planQueue = app.game.teams[app.currentPlayer].filter(u => u.alive).map(u => u.uid);
+    app.planIdx = 0;
+    showHandoff(
+      `请将设备交给 <span class="pname">${playerName(app.currentPlayer)}</span>`,
+      '我已就位，开始规划',
+      showPlan,
+    );
+  }
+
+  /* AI 思考浮层：计算已先行完成，延迟纯视觉（§13.8） */
+  function showAiThinking() {
+    const el = $('ai-thinking');
+    el.style.display = 'flex';
+    app.aiThinking = true;
+    app.aiTimer = setTimeout(finishAiThinking, 800 + Math.random() * 700);
+  }
+  function finishAiThinking() {
+    if (!app.aiThinking) return; // 防超时与手动跳过双触发
+    app.aiThinking = false;
+    if (app.aiTimer) { clearTimeout(app.aiTimer); app.aiTimer = null; }
+    $('ai-thinking').style.display = 'none';
+    showReveal();
+  }
+
+  function showHandoff(html, btnText, onGo, title = '行动保密') {
+    $('screen-handoff').querySelector('h2').textContent = title;
+    $('handoff-text').innerHTML = html;
+    $('btn-handoff-ok').textContent = btnText;
+    app.handoffGo = onGo;
+    show('handoff');
+  }
+
+  function showReveal() {
+    showHandoff('双方规划均已确认。<br>点击按钮同时揭示并结算本回合。', '▶ 揭示结算', reveal, '准备揭示');
+  }
+
+  function finishPlayerPlanning() {
+    if (app.currentPlayer === 'A') {
+      app.currentPlayer = 'B';
+      beginPlanning();   // 内部处理 AI 直通
+    } else {
+      showReveal();
+    }
+  }
+
+  /* ---------- 规划屏 ---------- */
+  function curPlanUid() { return app.planQueue[app.planIdx]; }
+  function initDraft(unit) {
+    const d = { atk: 0, atkTarget: '', def: 0, save: 0, formChoice: '', aggStance: undefined, skills: {} };
+    for (const id of unit.skills) {
+      const def = SKILLS[id];
+      if (def && (def.type === 'active' || def.type === 'form')) {
+        d.skills[id] = { on: false, count: 1, targetUid: '', a: 'atk', b: 'def', form: '' };
+      }
+    }
+    return d;
+  }
+  function curDraft() {
+    const uid = curPlanUid();
+    if (!app.drafts[uid]) app.drafts[uid] = initDraft(findUnit(uid));
+    return app.drafts[uid];
+  }
+  function draftSpent(d) {
+    let s = d.atk + d.def + d.save;
+    for (const [id, v] of Object.entries(d.skills || {})) {
+      if (v.on) { const def = SKILLS[id]; if (def && def.cost) s += def.cost * (v.count || 1); }
+    }
+    return s;
+  }
+  function buildPlan(d, unit) {
+    const hasAgg = unit.skills.includes('aggAtk') || unit.skills.includes('aggDef');
+    return {
+      unitUid: unit.uid,
+      formChoice: unit.formKey === 'alarak' ? (d.formChoice || undefined) : undefined,
+      aggStance: hasAgg && d.aggStance !== undefined ? d.aggStance : undefined,
+      // 攻点 > 0 即使未选目标也保留宣告，交由校验弹窗拦截（防静默丢弃）
+      attack: d.atk > 0 ? { points: d.atk, targetUid: d.atkTarget || '' } : null,
+      defend: d.def,
+      save: d.save,
+      skills: Object.entries(d.skills)
+        .filter(([, v]) => v.on)
+        .map(([id, v]) => ({
+          id,
+          targetUid: v.targetUid || undefined,
+          count: v.count || 1,
+          form: v.form || undefined,
+          a: v.a, b: v.b,
+        })),
+    };
+  }
+  function draftErrors(d, unit) {
+    return validatePlan(app.game, unit.team, { [unit.uid]: buildPlan(d, unit) }).errors;
+  }
+
+  function showPlan() { renderPlan(); show('plan'); }
+
+  function updatePlanTopbar(unit, d) {
+    const uid = curPlanUid();
+    const spent = draftSpent(d);
+    const lost = unit.available - spent;
+    $('plan-topbar').innerHTML = `
+      <span class="pt-title">第 ${app.game.round} 回合 · ${playerName(unit.team)}</span>
+      <span>单位 ${app.planIdx + 1}/${app.planQueue.length}：<b>${unit.icon}${unit.name}</b>（${uid}）${formLabel(unit) ? ' · ' + formLabel(unit) : ''}</span>
+      <span>可用 <span class="pt-num">${unit.available}</span></span>
+      <span>已分配 <span class="pt-num small ${spent > unit.available ? 'warn' : ''}">${spent}</span></span>
+      <span>将损失 <span class="pt-num small ${lost > 0 ? 'warn' : ''}">${lost}</span></span>
+      ${spent > unit.available ? '<span class="warn">⚠ 超出可用点数</span>' : ''}`;
+  }
+
+  function updatePlanConfirm(unit, d) {
+    const errs = draftErrors(d, unit);
+    $('btn-plan-prev').disabled = app.planIdx === 0;
+    $('btn-plan-confirm').textContent =
+      (app.planIdx === app.planQueue.length - 1 ? '确认并完成本方规划' : '确认本单位规划')
+      + (errs.length ? `（${errs[0]}）` : '');
+    $('btn-plan-confirm').title = errs.join('；');
+  }
+
+  function commitUnitPlan(unit, d) {
+    app.pendingPlans[unit.uid] = buildPlan(d, unit);
+    app.planIdx++;
+    if (app.planIdx < app.planQueue.length) renderPlan();
+    else finishPlayerPlanning();
+  }
+
+  function renderPlan() {
+    renderBattlefield('plan-battlefield');
+    const uid = curPlanUid();
+    const unit = findUnit(uid);
+    const d = curDraft();
+    const enemies = app.game.teams[unit.team === 'A' ? 'B' : 'A'].filter(u => u.alive);
+    if (enemies.length === 1 && !d.atkTarget) d.atkTarget = enemies[0].uid; // 唯一敌方自动锁定，无需手选
+
+    updatePlanTopbar(unit, d);
+
+    const slider = key => `
+      <div class="alloc-row">
+        <label>${key === 'atk' ? '⚔ 攻击' : key === 'def' ? '🛡 防御' : '💰 存入'}</label>
+        <input type="range" class="alloc-slider" min="0" max="${unit.available}" step="1" value="${d[key]}" data-slider="${key}">
+        <span class="val" id="val-${key}">${d[key]}</span>
+      </div>`;
+    // 攻击目标独立成行、全宽醒目；1v1 直接显示锁定结果
+    const targetRow = enemies.length === 1
+      ? `<div class="alloc-row">
+          <label>🎯 目标</label>
+          <span class="target-fixed">${enemies[0].icon}${enemies[0].name}（${enemies[0].uid}）· 唯一敌方已自动锁定</span>
+        </div>`
+      : `<div class="alloc-row">
+          <label>🎯 攻击目标</label>
+          <select id="atk-target" class="target-select ${d.atk > 0 && !d.atkTarget ? 'need' : ''}">
+            <option value="">— 点此选择攻击目标 —</option>
+            ${enemies.map(e => `<option value="${e.uid}" ${d.atkTarget === e.uid ? 'selected' : ''}>${e.icon}${e.name}（${e.uid}）</option>`).join('')}
+          </select>
+        </div>`;
+
+    const hasAgg = unit.skills.includes('aggAtk') || unit.skills.includes('aggDef');
+    const curStance = d.aggStance !== undefined ? d.aggStance : unit.stance;
+
+    $('plan-alloc').innerHTML = `
+      ${unit.formKey === 'alarak' ? `
+      <div class="alloc-group">
+        <h4>阿拉纳克形态（每回合必选，免费）</h4>
+        <div class="form-choice">
+          ${FORM_DEFS.alarak.choices.map(c => `<button data-alarak-form="${c.id}" class="${d.formChoice === c.id ? 'on' : ''}">${c.label}</button>`).join('')}
+        </div>
+      </div>` : ''}
+      ${hasAgg ? `
+      <div class="alloc-group">
+        <h4>聚合姿态（常驻生效，随时切换，持续到再次切换）</h4>
+        <div class="form-choice">
+          <button data-agg-stance="" class="${curStance === null ? 'on' : ''}">无姿态</button>
+          <button data-agg-stance="aggAtk" class="${curStance === 'aggAtk' ? 'on' : ''}">聚合攻击（打全体敌方）</button>
+          <button data-agg-stance="aggDef" class="${curStance === 'aggDef' ? 'on' : ''}">聚合防御（防点共享队友）</button>
+        </div>
+      </div>` : ''}
+      <div class="alloc-group">
+        <h4>基础行动（攻 / 防 / 存）</h4>
+        ${slider('atk')}
+        ${targetRow}
+        ${slider('def')}
+        ${slider('save')}
+      </div>
+      <p class="hint-line">未使用且未存入的点数回合末消失。克制三角：防御 克 攻击 · 攻击 克 存入 · 存入 克 防御。</p>`;
+
+    const abOpts = sel => ['atk', 'def', 'save'].map(k =>
+      `<option value="${k}" ${sel === k ? 'selected' : ''}>${k === 'atk' ? '攻' : k === 'def' ? '防' : '存'}</option>`).join('');
+    const skillCard = id => {
+      const def = SKILLS[id];
+      const st = d.skills[id];
+      const cd = unit.cooldowns[id] || 0;
+      if (def.type === 'passive' || def.type === 'special') {
+        return `<div class="skill-item off"><div class="si-main">
+          <div class="si-name">${def.name}（${def.type === 'passive' ? '被动' : '特殊'}）</div>
+          <div class="si-desc">${def.desc}</div></div></div>`;
+      }
+      let controls = '';
+      if (st.on && cd === 0) {
+        if (def.target === 'enemy') {
+          controls += `<div class="alloc-row"><label>目标</label>
+            <select class="sk-target" data-skill="${id}">
+              <option value="">— 选择目标 —</option>
+              ${enemies.map(e2 => `<option value="${e2.uid}" ${st.targetUid === e2.uid ? 'selected' : ''}>${e2.icon}${e2.name}（${e2.uid}）</option>`).join('')}
+            </select></div>`;
+        }
+        if (id === 'insight') {
+          controls += `<div class="alloc-row"><label>宣告</label>
+            己方 <select class="sk-a" data-skill="${id}">${abOpts(st.a)}</select>
+            归零目标 <select class="sk-b" data-skill="${id}">${abOpts(st.b)}</select></div>`;
+        }
+        if (def.stackable) {
+          controls += `<div class="alloc-row"><label>层数</label>
+            <span class="stepper">
+              <button data-skill-step="${id}" data-delta="-1">−</button>
+              <span class="sval">${st.count}</span>
+              <button data-skill-step="${id}" data-delta="1">＋</button>
+            </span><span class="hint-line">每层 ${def.cost} 点</span></div>`;
+        }
+        if (id === 'trinity') {
+          controls += `<div class="form-choice">${FORM_DEFS.trinity.choices.map(c =>
+            `<button data-triform="${id}" data-form="${c.id}" class="${st.form === c.id ? 'on' : ''}">${c.label}</button>`).join('')}</div>`;
+        }
+      }
+      return `<div class="skill-item ${st.on && cd === 0 ? 'on' : 'off'}">
+        <div class="si-main">
+          <div class="si-name">${def.name}${def.type === 'form' ? '（形态）' : ''}
+            <button class="sk-toggle" data-skill-toggle="${id}" ${cd > 0 ? 'disabled' : ''}>${cd > 0 ? `冷却中（剩 ${cd} 回合）` : (st.on ? '已宣告 ✓' : '宣告')}</button>
+          </div>
+          <div class="si-meta">${def.cost ? `<span class="cost">费用 ${def.cost}${def.stackable ? '/层' : ''}</span> · ` : '免费 · '}${def.cooldown ? `<span class="cd">冷却 ${def.cooldown}</span>` : '无冷却'}</div>
+          <div class="si-desc">${def.desc}</div>
+          ${controls}
+        </div>
+      </div>`;
+    };
+    const skillIds = unit.skills.filter(id => SKILLS[id] && !(hasAgg && (id === 'aggAtk' || id === 'aggDef')));
+    $('plan-skills').innerHTML = `
+      <div class="alloc-group"><h4>技能宣告</h4></div>
+      ${skillIds.length ? `<div class="skill-list">${skillIds.map(skillCard).join('')}</div>`
+        : '<p class="hint-line">该角色没有可显示的技能。</p>'}`;
+
+    $('plan-unit-tabs').innerHTML = app.planQueue.map((u2, i) => {
+      const unit2 = findUnit(u2);
+      const done = i < app.planIdx || !!app.pendingPlans[u2];
+      return `<span class="tab ${i === app.planIdx ? 'on' : ''} ${done ? 'done' : ''}" data-idx="${i}">${unit2.icon}${unit2.name}</span>`;
+    }).join('');
+
+    updatePlanConfirm(unit, d);
+  }
+
+  /* ---------- 揭示与结算报告 ---------- */
+  function reveal() {
+    const r = resolveRound(app.game, app.pendingPlans);
+    app.game = r.state;
+    app.lastEvents = r.events;
+    renderReport();
+    show('report');
+  }
+
+  function hlNums(text) { return text.replace(/\d+/g, m => `<b>${m}</b>`); }
+
+  function renderReport() {
+    renderBattlefield('report-battlefield');
+    $('report-title').textContent = `第 ${app.game.round} 回合 · 结算报告`;
+    $('btn-next-round').textContent = app.game.winner ? '查看结果 ▶' : '下一回合 ▶';
+    const names = { R1: 'R1 回合开始', S1: 'S1 技能控制与修正', S2: 'S2 战斗', S3: 'S3 直接伤害技能', S4: 'S4 死亡清算', S5: 'S5 回合结束' };
+    let html = '';
+    for (const ph of ['R1', 'S1', 'S2', 'S3', 'S4', 'S5']) {
+      const evs = app.lastEvents.filter(e => e.phase === ph);
+      if (!evs.length) continue;
+      html += `<div class="report-phase">${names[ph]}</div>`;
+      html += evs.map(e => {
+        const cls = 'ev' + (e.hl ? ' ev-' + e.hl : '');
+        return `<div class="${cls}">${hlNums(e.text)}</div>`;
+      }).join('');
+    }
+    $('report-log').innerHTML = html || '<div class="ev">（本回合无事件）</div>';
+    $('report-log').scrollTop = 0;
+  }
+
+  function nextRound() {
+    if (app.screen !== 'report') return; // 防御：只在结算报告屏允许进入下一回合（杜绝跳过结算的异常路径）
+    if (app.game.winner) { renderEnd(); show('end'); }
+    else startRound();
+  }
+
+  function renderEnd() {
+    const w = app.game.winner;
+    $('end-text').innerHTML = w === 'draw'
+      ? '⚖️ 平局！双方同时倒下。'
+      : `🏆 ${playerName(w)} 获胜！`;
+  }
+
+  /* ---------- 帮助屏：完整规则速查 ---------- */
+  function renderHelp() {
+    $('help-content').innerHTML = `
+      <h3>🎯 游戏目标</h3>
+      <p>星际争霸主题的<b>同回合制博弈</b>：双方基于相同信息<b>秘密规划</b>，再<b>同时揭示</b>结算。将对方全部单位生命打到 0 即获胜；双方同时全灭为平局。</p>
+      <h3>💎 经济系统</h3>
+      <p>· 每回合开始，每个存活单位获得「收入」，加上上回合「存入余额」，构成<b>可用点数</b>。</p>
+      <p>· 可用点数自由拆分为：攻击 / 防御 / 存入 / 技能费用；<b>未使用且未存入的点数在回合末直接消失</b>。</p>
+      <p>· 存入的点数转入下回合可用池（SCV 生产 ×2、三位一体存形态 ×2 等效果会放大）。</p>
+      <h3>⚔️ 四类基础行动</h3>
+      <p>· <b>攻击</b>：分配攻点并指定一名存活敌方目标；每单位每回合至多宣告一次攻击、一个目标。</p>
+      <p>· <b>防御</b>：分配防点形成<b>防御池</b>，抵扣指向自己的攻击。</p>
+      <p>· <b>存入</b>：点数转入下回合，本回合毫无保护。</p>
+      <p>· <b>技能</b>：宣告技能并支付费用，与基础行动可同回合并用。</p>
+      <h3>🔺 克制三角与伤害公式</h3>
+      <div class="triangle-diagram">
+        <div class="node">🛡️ 防御</div><div class="arrow">克</div><div class="node">⚔️ 攻击</div>
+        <div class="arrow">克</div><div class="node">💰 存入</div><div class="arrow">克</div><div class="node">🛡️ 防御</div>
+      </div>
+      <p>· <b>防御 克 攻击</b>：实扣防御 = min(防御池余量, 攻点)；<b>伤害 =（攻点 − 实扣防御）× 攻击力</b>，≤0 则无伤。</p>
+      <p>· <b>攻击 克 存入</b>：存入毫无保护，攻击全额生效；但已存入的点数照常保留（不没收）。</p>
+      <p>· <b>存入 克 防御</b>：对方不攻击时防御点白白消耗，存入方安全积累经济。</p>
+      <p>· <b>防御池规则</b>：多道攻击按<b>攻点从大到小</b>依次消耗同一个池，耗尽后后续攻击不再被抵扣；被消耗的防御不返还。</p>
+      <h3>⏱ 回合时间线（引擎严格按此顺序）</h3>
+      <p>· <b>R1 回合开始</b>：冷却 −1 → 收入与存入结转 → 被动触发（凯瑞甘再生 / 刺蛇生生不息 / 埃蒙堕落与跃迁 / 噬灵付费）。</p>
+      <p>· <b>R2 规划</b>：双方秘密规划（热座交替）；阿拉纳克每回合必选形态。</p>
+      <p>· <b>S1 技能控制层</b>：EMP / 腐蚀 / 黏滞 / 烈焰 / 麻痹 / 束缚 / 识破 / 穿甲 / 电浆 / 电磁场 / 闪避生效；<b>常驻效果</b>（势如破竹自动瓦解、聚合姿态赠予）自动结算。</p>
+      <p>· <b>S2 战斗层</b>：按攻点从大到小逐条结算（迷乱全场 / 聚合攻击改目标集；星灵光刃 / 反制判定；连锁电击溅射；自爆反噬）。</p>
+      <p>· <b>S3 直接伤害</b>：处决（不吃防御/盾）。</p>
+      <p>· <b>S4 死亡清算</b>：HP ≤ 0 判定阵亡（埃蒙不屈在此发动，每场限一次）。</p>
+      <p>· <b>S5 回合结束</b>：凯瑞甘大招 → 德哈卡形态切换 → 噬灵入账 → 清理临时效果 → 存入余额入账 → 胜负判定。</p>
+      <h3>🛡 同时结算原则</h3>
+      <p>· 所有行动基于规划期快照：宣告者中途死亡，其攻击/技能<b>照常结算</b>（凯瑞甘大招、德哈卡形态等回合末效果例外，宣告者已死则作废）。</p>
+      <p>· 血量结算途中可为负，死亡统一在 S4 判定。</p>
+      <h3>📺 界面战斗流程</h3>
+      <p>· 选人（A→B 交替，同队去重）→ 复制者公开选复制目标 → 进入回合循环。</p>
+      <p>· 每回合：<b>交接屏</b>（防偷看）→ 逐单位<b>规划</b>（滑块分配攻/防/存 + 技能宣告，实时校验超支与目标）→ 对方规划 → <b>▶ 揭示结算</b> → 按时间线展示<b>结算报告</b> → 下一回合。</p>
+      <p>· 顶部战场总览常驻：双方角色卡显示攻击力 / 生命 / 收入 / 可用点数 / 存入余额 / 冷却与状态标记。</p>
+      <p>· 1v1 可勾选 <b>AI 对手</b>（简单/普通/困难）：AI 自动选人并规划；「AI 思考中…」为纯视觉延迟，可点击跳过，不影响结果。</p>
+      <h3>📜 其他要点</h3>
+      <p>· 冷却「N」= 使用后接下来 N 个回合不可用；盾（临时生命）优先扣除，回合末清除。</p>
+      <p>· 断牙狂暴：不受任何<b>其他单位</b>技能影响（敌我皆算，含增益）；但攻击与迷乱的目标集仍可命中他。</p>
+      <p>· <b>常驻效果无需宣告</b>：势如破竹每回合自动瓦解敌方收入最高的未瓦解单位；塔萨达尔的聚合攻击/聚合防御为常驻姿态，随时切换。</p>`;
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  function init() {
+    initTitle();
+
+    $('char-grid').addEventListener('click', e => {
+      const card = e.target.closest('.char-card');
+      if (!card || card.classList.contains('disabled')) return;
+      if (card.dataset.charId) onPickChar(card.dataset.charId);
+    });
+    $('btn-select-back').addEventListener('click', () => show('title'));
+    $('btn-select-confirm').addEventListener('click', confirmSelect);
+
+    $('copy-panel').addEventListener('click', e => {
+      const card = e.target.closest('.char-card');
+      if (card && card.dataset.uid) onCopyPick(card.dataset.uid);
+    });
+
+    $('btn-handoff-ok').addEventListener('click', () => {
+      const f = app.handoffGo;
+      app.handoffGo = null;
+      if (f) f();
+    });
+    $('btn-ai-skip').addEventListener('click', finishAiThinking);
+
+    $('plan-unit-tabs').addEventListener('click', e => {
+      const tab = e.target.closest('.tab');
+      if (!tab) return;
+      const i = Number(tab.dataset.idx);
+      if (app.planQueue[i]) { app.planIdx = i; renderPlan(); }
+    });
+    $('plan-alloc').addEventListener('click', e => {
+      const alarak = e.target.closest('button[data-alarak-form]');
+      if (alarak) { curDraft().formChoice = alarak.dataset.alarakForm; renderPlan(); return; }
+      const agg = e.target.closest('button[data-agg-stance]');
+      if (agg) { curDraft().aggStance = agg.dataset.aggStance === '' ? null : agg.dataset.aggStance; renderPlan(); }
+    });
+    $('plan-alloc').addEventListener('input', e => {
+      const sl = e.target.closest('input[data-slider]');
+      if (!sl) return;
+      const d = curDraft();
+      d[sl.dataset.slider] = Number(sl.value);
+      const val = document.getElementById('val-' + sl.dataset.slider);
+      if (val) val.textContent = sl.value;
+      const unit = findUnit(curPlanUid());
+      updatePlanTopbar(unit, d);   // 拖动中局部更新，不重建滑块
+      updatePlanConfirm(unit, d);
+    });
+    $('plan-alloc').addEventListener('change', e => {
+      if (e.target.id === 'atk-target') { curDraft().atkTarget = e.target.value; renderPlan(); return; }
+      if (e.target.closest('input[data-slider]')) renderPlan(); // 松手后整体刷新
+    });
+    $('plan-skills').addEventListener('click', e => {
+      const tg = e.target.closest('[data-skill-toggle]');
+      if (tg && !tg.disabled) {
+        const id = tg.dataset.skillToggle;
+        const dd = curDraft();
+        dd.skills[id].on = !dd.skills[id].on;
+        if (dd.skills[id].on && id === 'aggAtk' && dd.skills.aggDef) dd.skills.aggDef.on = false; // ⚑R15
+        if (dd.skills[id].on && id === 'aggDef' && dd.skills.aggAtk) dd.skills.aggAtk.on = false;
+        renderPlan();
+        return;
+      }
+      const ss = e.target.closest('[data-skill-step]');
+      if (ss) {
+        const unit = findUnit(curPlanUid());
+        const def = SKILLS[ss.dataset.skillStep];
+        const max = Math.max(1, Math.floor(unit.available / (def.cost || 1)));
+        const st = curDraft().skills[ss.dataset.skillStep];
+        st.count = Math.max(1, Math.min(max, st.count + Number(ss.dataset.delta)));
+        renderPlan();
+        return;
+      }
+      const tf = e.target.closest('[data-triform]');
+      if (tf) {
+        curDraft().skills[tf.dataset.triform].form = tf.dataset.form;
+        renderPlan();
+      }
+    });
+    $('plan-skills').addEventListener('change', e => {
+      const t = e.target;
+      if (t.classList.contains('sk-target')) { curDraft().skills[t.dataset.skill].targetUid = t.value; renderPlan(); }
+      else if (t.classList.contains('sk-a')) { curDraft().skills[t.dataset.skill].a = t.value; renderPlan(); }
+      else if (t.classList.contains('sk-b')) { curDraft().skills[t.dataset.skill].b = t.value; renderPlan(); }
+    });
+    $('btn-plan-prev').addEventListener('click', () => {
+      if (app.planIdx > 0) { app.planIdx--; renderPlan(); }
+    });
+    $('btn-plan-confirm').addEventListener('click', () => {
+      const uid = curPlanUid();
+      const unit = findUnit(uid);
+      const d = curDraft();
+      // ① 分配了攻点却没选目标 → 专门弹窗提醒（高频遗忘点）
+      if (d.atk > 0 && !d.atkTarget) {
+        showModal({
+          title: '⚠ 未选择攻击目标',
+          body: `已分配 <b style="color:var(--gold)">${d.atk}</b> 点攻击，但还没有选择攻击目标。<br>请在「🎯 攻击目标」中点选，或把攻击滑块调回 0。`,
+          buttons: [{ text: '返回修改', cls: 'primary' }],
+        });
+        return;
+      }
+      // ② 其余硬性错误（超支 / 形态未选等）→ 弹窗阻断
+      const errs = draftErrors(d, unit);
+      if (errs.length) {
+        showModal({
+          title: '⚠ 无法提交',
+          body: errs.map(e => '· ' + e).join('<br>'),
+          buttons: [{ text: '返回修改', cls: 'primary' }],
+        });
+        return;
+      }
+      // ③ 点数未用完 → 二次确认，防手滑浪费
+      const lost = unit.available - draftSpent(d);
+      if (lost > 0) {
+        // 点数未用完 → 弹窗二次确认，防手滑浪费
+        showModal({
+          title: '提交确认',
+          body: `还有 <b style="color:var(--gold)">${lost}</b> 点既未分配也未存入，回合末将直接消失。<br>确定按当前方案提交吗？`,
+          buttons: [
+            { text: '返回修改', cls: 'ghost' },
+            { text: '确认提交', cls: 'primary', onClick: () => commitUnitPlan(unit, d) },
+          ],
+        });
+        return;
+      }
+      commitUnitPlan(unit, d);
+    });
+
+    $('btn-next-round').addEventListener('click', nextRound);
+    $('btn-restart').addEventListener('click', () => { resetGame(); show('title'); });
+  }
+
+  return { init, show, app };
+})();
+
+document.addEventListener('DOMContentLoaded', () => UI.init());
+</script>
+
+<!-- ============================================================
+     TEST 层：?test=1 自测框架（规格 §9）
+============================================================ -->
+<script data-layer="TEST">
+'use strict';
+
+const TESTS = [];
+function test(name, fn) { TESTS.push({ name, fn }); }
+function assert(cond, msg) { if (!cond) throw new Error(msg == null ? '断言失败' : String(msg)); }
+function eq(actual, expected, msg) {
+  const a = JSON.stringify(actual), b = JSON.stringify(expected);
+  if (a !== b) throw new Error((msg || '不相等') + `：实际 ${a}，期望 ${b}`);
+}
+
+function runAllTests() {
+  const results = [];
+  let passed = 0, failed = 0;
+  for (const t of TESTS) {
+    const r = { name: t.name, ok: true, error: null, ms: 0 };
+    const t0 = Date.now();
+    try { t.fn(); } catch (e) { r.ok = false; r.error = e.message; }
+    r.ms = Date.now() - t0;
+    if (r.ok) passed++; else failed++;
+    results.push(r);
+  }
+  return { total: TESTS.length, passed, failed, results };
+}
+
+/* ============ 用例注册（随里程碑递增） ============ */
+
+test('M0: createGame 生成字段完整的合法状态', () => {
+  const s = createGame('1v1', ['L1'], ['L2']);
+  assert(s.mode === '1v1', 'mode 错误');
+  assert(s.round === 0, 'round 应为 0');
+  assert(s.winner === null, 'winner 应为 null');
+  assert(Array.isArray(s.history) && s.history.length === 0, 'history 应为空数组');
+  const a = s.teams.A[0], b = s.teams.B[0];
+  assert(a.uid === 'A0' && a.team === 'A' && a.slot === 0, 'A0 标识错误');
+  assert(a.charId === 'L1' && a.name === '三位一体', 'L1 名称错误');
+  assert(a.hp === 30 && a.maxHp === 30 && a.atk === 6 && a.income === 2, 'L1 属性错误');
+  assert(a.available === 0 && a.bank === 0 && a.alive === true, 'L1 初始经济状态错误');
+  assert(Array.isArray(a.skills) && a.skills.includes('trinity'), 'L1 技能表错误');
+  assert(b.charId === 'L2' && b.hp === 30 && b.atk === 3 && b.income === 6, 'L2 属性错误');
+  assert(b.uid === 'B0' && b.team === 'B', 'B0 标识错误');
+});
+
+test('M0: 全部 20 名角色数据完整', () => {
+  const ids = Object.keys(CHARACTERS);
+  assert(ids.length === 20, '角色数应为 20，实际 ' + ids.length);
+  for (const id of ids) {
+    const c = CHARACTERS[id];
+    assert(c.name && typeof c.atk === 'number' && typeof c.hp === 'number' && typeof c.income === 'number', id + ' 属性不完整');
+    for (const sid of c.skills) assert(SKILLS[sid], id + ' 引用了不存在的技能 ' + sid);
+  }
+});
+
+/* ============ M1：核心公式（8 条） ============ */
+function mirror() { return createGame('1v1', ['L2'], ['L2']); } // 圣堂武士镜像：攻3 血30 收6
+function planAtk(uid, pts, target) { return { unitUid: uid, attack: { points: pts, targetUid: target }, defend: 0, save: 0, skills: [] }; }
+function planDef(uid, pts) { return { unitUid: uid, attack: null, defend: pts, save: 0, skills: [] }; }
+function planSave(uid, pts) { return { unitUid: uid, attack: null, defend: 0, save: pts, skills: [] }; }
+
+test('M1 核心: 攻防抵扣 伤害=(攻−实扣防)×攻击力', () => {
+  const { state: s } = beginRound(mirror());
+  eq(s.teams.A[0].available, 6, 'R1 收入 6');
+  eq(s.teams.B[0].available, 6, 'R1 收入 6');
+  const r = resolveRound(s, { A0: planAtk('A0', 5, 'B0'), B0: planDef('B0', 3) });
+  const a = r.state.teams.A[0], b = r.state.teams.B[0];
+  eq(b.hp, 30 - (5 - 3) * 3, 'B 应受 6 伤');
+  eq(a.hp, 30, 'A 无伤');
+  eq(a.available, 0, 'A 点数全部消耗');
+  eq(a.bank, 0, 'A 无存入');
+  eq(b.bank, 0, 'B 防御非存入');
+  const atkEv = r.events.find(e => e.type === 'attack');
+  eq(atkEv.values, { points: 5, def: 3, power: 3, dmg: 6, shieldAbs: 0, countered: false }, '攻击事件数值');
+});
+
+test('M1 核心: 攻≤防 无伤（防点按 min 消耗）', () => {
+  const { state: s } = beginRound(mirror());
+  const r = resolveRound(s, { A0: planAtk('A0', 2, 'B0'), B0: planDef('B0', 5) });
+  eq(r.state.teams.B[0].hp, 30, '无伤');
+  const atkEv = r.events.find(e => e.type === 'attack');
+  eq(atkEv.values, { points: 2, def: 2, power: 3, dmg: 0, shieldAbs: 0, countered: false }, '实扣防 = min(5,2) = 2');
+});
+
+test('M1 核心: 攻克存全额生效', () => {
+  const { state: s } = beginRound(mirror());
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0'), B0: planSave('B0', 6) });
+  eq(r.state.teams.B[0].hp, 30 - 6 * 3, '存入不提供保护，全额 18 伤');
+});
+
+test('M1 核心: 存点保留（被攻击仍结转，不没收）', () => {
+  const { state: s } = beginRound(mirror());
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0'), B0: planSave('B0', 6) });
+  eq(r.state.teams.B[0].bank, 6, '被全额命中但存入保留');
+  eq(r.state.teams.B[0].available, 0, 'available 清零');
+});
+
+test('M1 核心: 存入结转至下回合', () => {
+  const r1 = resolveRound(beginRound(mirror()).state, { A0: planAtk('A0', 6, 'B0'), B0: planSave('B0', 6) });
+  const r2 = beginRound(r1.state);
+  eq(r2.state.teams.B[0].available, 12, '收入 6 + 结转 6');
+  eq(r2.state.teams.B[0].bank, 0, '结转后清零');
+  eq(r2.state.teams.A[0].available, 6, 'A 无存入仅收入');
+});
+
+test('M1 核心: 存克防（防御点白白消耗）', () => {
+  const { state: s } = beginRound(mirror());
+  const r = resolveRound(s, { A0: planSave('A0', 6), B0: planDef('B0', 6) });
+  const a = r.state.teams.A[0], b = r.state.teams.B[0];
+  eq(b.hp, 30, 'B 无伤');
+  eq(a.bank, 6, 'A 安全积累');
+  eq(b.bank, 0, 'B 防御点白白消耗');
+  eq(r.events.filter(e => e.type === 'attack').length, 0, '无攻击事件');
+});
+
+test('M1 核心: 点数未用直接损失', () => {
+  const { state: s } = beginRound(mirror());
+  const r = resolveRound(s, { A0: planAtk('A0', 1, 'B0'), B0: planSave('B0', 6) });
+  const waste = r.events.find(e => e.type === 'waste');
+  eq(waste.values.wasted, 5, 'A 损失 5 点');
+  const r2 = beginRound(r.state);
+  eq(r2.state.teams.A[0].available, 6, '下回合仅收入，浪费点不结转');
+});
+
+test('M1 核心: 冷却递减', () => {
+  const g = mirror();
+  g.teams.A[0].cooldowns = { execute: 3 };
+  const r1 = beginRound(g);
+  eq(r1.state.teams.A[0].cooldowns.execute, 2);
+  const r2 = beginRound(r1.state);
+  eq(r2.state.teams.A[0].cooldowns.execute, 1);
+  const r3 = beginRound(r2.state);
+  eq(r3.state.teams.A[0].cooldowns.execute, 0, '恢复可用');
+});
+
+/* ============ M1：防御池（3 条） ============ */
+// 同队不可重复角色：用 L2（圣堂武士 3/30/6）+ L10（伏击者 3/28/6），攻/收入一致便于复算
+function mirror2v2() { return createGame('2v2', ['L2', 'L10'], ['L2', 'L10']); }
+
+test('M1 防御池: 单攻击抵扣', () => {
+  const { state: s } = beginRound(mirror2v2());
+  const r = resolveRound(s, { A0: planAtk('A0', 4, 'B0'), A1: planSave('A1', 6), B0: planDef('B0', 6), B1: planSave('B1', 6) });
+  const atkEv = r.events.find(e => e.type === 'attack');
+  eq(atkEv.values, { points: 4, def: 4, power: 3, dmg: 0, shieldAbs: 0, countered: false }, '池 6 抵 4');
+  eq(r.state.teams.B[0].hp, 30);
+});
+
+test('M1 防御池: 双攻击按攻点降序消耗（⚑R1）', () => {
+  const { state: s } = beginRound(mirror2v2());
+  const r = resolveRound(s, { A0: planAtk('A0', 3, 'B0'), A1: planAtk('A1', 5, 'B0'), B0: planDef('B0', 6) });
+  const evs = r.events.filter(e => e.type === 'attack');
+  eq(evs.length, 2);
+  eq(evs[0].values, { points: 5, def: 5, power: 3, dmg: 0, shieldAbs: 0, countered: false }, '5 点攻击先结算，全抵');
+  eq(evs[1].values, { points: 3, def: 1, power: 3, dmg: 6, shieldAbs: 0, countered: false }, '3 点攻击只抵剩 1');
+  eq(r.state.teams.B[0].hp, 24, 'B 受 6 伤');
+});
+
+test('M1 防御池: 池耗尽后穿透', () => {
+  const { state: s } = beginRound(mirror2v2());
+  const r = resolveRound(s, { A0: planAtk('A0', 5, 'B0'), A1: planAtk('A1', 3, 'B0'), B0: planDef('B0', 2) });
+  const evs = r.events.filter(e => e.type === 'attack');
+  eq(evs[0].values, { points: 5, def: 2, power: 3, dmg: 9, shieldAbs: 0, countered: false }, '池 2 抵 5 中 2');
+  eq(evs[1].values, { points: 3, def: 0, power: 3, dmg: 9, shieldAbs: 0, countered: false }, '池空穿透全额');
+  eq(r.state.teams.B[0].hp, 12, 'B 受 18 伤');
+});
+
+/* ============ M1：交互时序（4 条） ============ */
+
+test('M1 时序: 宣告者死亡其攻击仍结算（⚑R2）', () => {
+  const { state: s } = beginRound(mirror());
+  s.teams.B[0].hp = 5; // A 攻 6 点 ×3 = 18 伤 → B 中途 HP 为负但 S4 才判死
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0'), B0: planAtk('B0', 4, 'A0') });
+  eq(r.state.teams.A[0].hp, 18, 'B 死前宣告的攻击照常结算');
+  eq(r.state.teams.B[0].alive, false, 'B 在 S4 死亡');
+  eq(r.state.winner, 'A');
+});
+
+test('M1 时序: 双方同时全灭 → 平局', () => {
+  const { state: s } = beginRound(mirror());
+  s.teams.A[0].hp = 5;
+  s.teams.B[0].hp = 5;
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0'), B0: planAtk('B0', 6, 'A0') });
+  eq(r.state.teams.A[0].alive, false);
+  eq(r.state.teams.B[0].alive, false);
+  eq(r.state.winner, 'draw');
+});
+
+test('M1 时序: 一方全灭 → 另一方胜', () => {
+  const { state: s } = beginRound(mirror());
+  s.teams.B[0].hp = 5;
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0'), B0: planAtk('B0', 2, 'A0') });
+  eq(r.state.teams.B[0].alive, false, 'B 受 18 伤阵亡');
+  eq(r.state.teams.A[0].alive, true, 'A 受 6 伤存活');
+  eq(r.state.winner, 'A');
+});
+
+test('M1 时序: 死亡单位存入作废且次回合无收入', () => {
+  const { state: s } = beginRound(mirror());
+  s.teams.B[0].hp = 5;
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0'), B0: planSave('B0', 6) });
+  eq(r.state.teams.B[0].alive, false);
+  eq(r.state.teams.B[0].bank, 0, '死亡单位存入作废');
+  const r2 = beginRound(r.state);
+  eq(r2.state.teams.B[0].available, 0, '死亡单位无收入');
+  eq(r2.state.teams.A[0].available, 6, '存活单位正常收入');
+});
+
+/* ============ M1 附加：校验 / 确定性 / 全局脚本对局 ============ */
+
+test('M1 校验: 超支计划被拒', () => {
+  const { state: s } = beginRound(mirror());
+  const v = validatePlan(s, 'A', { A0: planAtk('A0', 7, 'B0') });
+  eq(v.ok, false);
+  assert(v.errors.some(e => e.includes('超过可用')), '应有超支错误');
+});
+
+test('M1 校验: 非法攻击目标被拒（自己/友方/死亡/不存在）', () => {
+  const { state: s } = beginRound(mirror());
+  eq(validatePlan(s, 'A', { A0: planAtk('A0', 3, 'A0') }).ok, false, '目标=自己');
+  eq(validatePlan(s, 'A', { A0: planAtk('A0', 3, 'X9') }).ok, false, '目标不存在');
+  const s2 = beginRound(mirror()).state;
+  s2.teams.B[0].alive = false;
+  eq(validatePlan(s2, 'A', { A0: planAtk('A0', 3, 'B0') }).ok, false, '目标已死亡');
+});
+
+test('M1 校验: 冷却中技能被拒，费用不足被拒，凑齐后通过', () => {
+  const s1 = beginRound(mirror()).state;
+  s1.teams.A[0].cooldowns = { execute: 1 };
+  const v1 = validatePlan(s1, 'A', { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'execute', targetUid: 'B0' }] } });
+  eq(v1.ok, false, '冷却中不可选');
+  const s2 = beginRound(mirror()).state;
+  const v2 = validatePlan(s2, 'A', { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'execute', targetUid: 'B0' }] } });
+  eq(v2.ok, false, '费用 8 > 可用 6');
+  let s3 = beginRound(mirror()).state;
+  s3 = resolveRound(s3, { A0: planSave('A0', 6), B0: planSave('B0', 6) }).state;
+  s3 = beginRound(s3).state;
+  const v3 = validatePlan(s3, 'A', { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'execute', targetUid: 'B0' }] } });
+  eq(v3.ok, true, '可用 12 ≥ 费用 8');
+});
+
+test('M1 确定性: 同输入两次结算输出完全一致', () => {
+  const mk = () => {
+    const b = beginRound(mirror());
+    b.state.teams.B[0].hp = 20;
+    return b.state;
+  };
+  const plans = () => ({ A0: planAtk('A0', 5, 'B0'), B0: planDef('B0', 2) });
+  const r1 = resolveRound(mk(), plans());
+  const r2 = resolveRound(mk(), plans());
+  eq(JSON.stringify(r1), JSON.stringify(r2), '同输入同输出（含事件流）');
+});
+
+test('M1 全局: 5 回合脚本对局数字复核 + history 记录', () => {
+  let s = mirror();
+  const step = plans => { const r = playRound(s, plans); s = r.state; return r; };
+  step({ A0: planSave('A0', 6), B0: planSave('B0', 6) });
+  eq(s.round, 1); eq(s.teams.A[0].bank, 6); eq(s.teams.B[0].bank, 6);
+  step({ A0: planAtk('A0', 12, 'B0'), B0: planDef('B0', 12) });
+  eq(s.teams.B[0].hp, 30, 'R2 全额抵扣无伤');
+  step({ A0: planAtk('A0', 6, 'B0'), B0: planSave('B0', 6) });
+  eq(s.teams.B[0].hp, 12, 'R3 受 18 伤');
+  eq(s.teams.B[0].bank, 6, 'R3 存入 6');
+  step({ A0: planAtk('A0', 6, 'B0'), B0: planDef('B0', 12) });
+  eq(s.teams.B[0].hp, 12, 'R4 无伤');
+  step({ A0: planAtk('A0', 6, 'B0'), B0: planAtk('B0', 6, 'A0') });
+  eq(s.teams.B[0].alive, false, 'R5 B 阵亡');
+  eq(s.teams.A[0].hp, 12, 'R5 A 受 18 伤后存活');
+  eq(s.winner, 'A');
+  eq(s.history.length, 5, '每回合一条 history');
+  eq(s.history[0].actions.A0.save, 6, 'R1 A 存 6');
+  eq(s.history[4].actions.A0.attack, { points: 6, target: 'B0' }, 'R5 A 攻击记录');
+});
+
+/* ============ M2：被动型角色 ============ */
+
+test('M2 L5 断牙: 狂暴免疫敌方 EMP（⚑R16）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L5'], ['H4']));
+  const r = resolveRound(s, { A0: planAtk('A0', 2, 'B0'), B0: { unitUid: 'B0', attack: null, defend: 0, save: 0, skills: [{ id: 'emp', targetUid: 'A0' }] } });
+  assert(r.events.some(e => e.phase === 'S1' && e.type === 'immune'), '应有狂暴免疫事件');
+  const atkEv = r.events.find(e => e.type === 'attack');
+  eq(atkEv.values.points, 2, '断牙分配未被清零，攻击照常');
+  eq(r.state.teams.B[0].hp, 12 - 6, 'B 受 6 伤');
+});
+
+test('M2 L6 刺蛇: 生生不息 floor(上回合存入/4)（⚑R3）', () => {
+  const r1 = playRound(createGame('1v1', ['L6'], ['L2']), { A0: planSave('A0', 8) });
+  eq(r1.state.teams.A[0].lastSave, 8);
+  const r2 = beginRound(r1.state);
+  eq(r2.state.teams.A[0].available, 12 + 8 + 2, '收入12 + 结转8 + 生息2');
+  assert(r2.events.some(e => e.type === 'endless' && e.values.bonus === 2));
+});
+
+test('M2 L8 SCV: 存入 ×2（⚑R18）', () => {
+  const r1 = playRound(createGame('1v1', ['L8'], ['L2']), { A0: planSave('A0', 4) });
+  eq(r1.state.teams.A[0].bank, 8, '存 4 实存 8');
+  const r2 = beginRound(r1.state);
+  eq(r2.state.teams.A[0].available, 12, '收入4 + 结转8');
+});
+
+test('M2 L9 战争使者: 迷乱全场含自己与队友（⚑R19）', () => {
+  const { state: s } = beginRound(createGame('2v2', ['L9', 'L2'], ['L2', 'L10']));
+  const r = resolveRound(s, { A0: planAtk('A0', 4, 'B0') });
+  eq(r.events.filter(e => e.type === 'attack').length, 4, '目标集=全场 4 单位');
+  eq(r.state.teams.A[0].hp, 24 - 12, '自己受 12');
+  eq(r.state.teams.A[1].hp, 30 - 12, '队友受 12');
+  eq(r.state.teams.B[0].hp, 30 - 12);
+  eq(r.state.teams.B[1].hp, 28 - 12, 'B1 为 L10 血 28');
+});
+
+test('M2 L10 伏击者: 反制触发（宣告攻 5 > 攻 4 → 归零）（⚑R8）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L10'], ['L2']));
+  const r = resolveRound(s, { A0: planAtk('A0', 5, 'B0'), B0: planAtk('B0', 4, 'A0') });
+  eq(r.state.teams.A[0].hp, 28, 'B 的攻击被反制归零（L10 血 28）');
+  eq(r.state.teams.B[0].hp, 15, 'A 的攻击照常（15 伤）');
+  const bAtk = r.events.filter(e => e.type === 'attack').find(e => e.src === 'B0');
+  eq(bAtk.values.countered, true);
+});
+
+test('M2 L10 伏击者: 反制不触发（宣告攻 5 ≤ 攻 6）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L10'], ['L2']));
+  const r = resolveRound(s, { A0: planAtk('A0', 5, 'B0'), B0: planAtk('B0', 6, 'A0') });
+  eq(r.state.teams.A[0].hp, 28 - 18, 'B 全额命中（L10 血 28）');
+});
+
+test('M2 H5 凯瑞甘: 再生 +4 且不超上限', () => {
+  const g = createGame('1v1', ['H5'], ['L2']);
+  g.teams.A[0].hp = 20;
+  const r1 = beginRound(g);
+  eq(r1.state.teams.A[0].hp, 24);
+  const r2 = beginRound(r1.state);
+  eq(r2.state.teams.A[0].hp, 28, '26+4 截断至上限 28');
+  const r3 = beginRound(r2.state);
+  eq(r3.state.teams.A[0].hp, 28, '满血不再生');
+});
+
+test('M2 H7 奥丁: 连锁电击 floor(主目标伤害/2) 溅射其他敌方（⚑R9）', () => {
+  const { state: s } = beginRound(createGame('2v2', ['H7', 'L2'], ['L2', 'L10']));
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0') });
+  eq(r.state.teams.B[0].hp, 12, '主目标 18 伤');
+  eq(r.state.teams.B[1].hp, 28 - 9, 'B1(L10 血28) 受溅射 9（不吃防御）');
+  eq(r.state.teams.A[1].hp, 30, '队友不被溅射');
+  assert(r.events.some(e => e.type === 'splash' && e.values.splash === 9));
+});
+
+test('M2 H8 阿巴瑟: 噬灵标记、每层付 2、付不起扣 round(25%)', () => {
+  const r1 = playRound(createGame('1v1', ['H8'], ['L2']), { B0: planAtk('B0', 3, 'A0') });
+  eq(r1.state.teams.B[0].soulMarks, 1, '造成攻击伤害 → 1 层');
+  eq(r1.state.teams.A[0].hp, 51);
+  const r2 = playRound(r1.state, {});
+  eq(r2.state.teams.B[0].soulMarks, 1, '层数保持');
+  const s3 = cloneState(r2.state);
+  s3.teams.B[0].soulMarks = 5; // 5 层需付 10，仅收入 6 → 付不起
+  const r3 = beginRound(s3);
+  eq(r3.state.teams.B[0].hp, 30 - 8, '失去 round(30×25%) = 8');
+  eq(r3.state.teams.B[0].soulMarks, 5, '层数永不消失');
+});
+
+test('M2 H9 埃蒙: 堕落 −10/回合、40/20 跃迁、不屈一次性（⚑R22）', () => {
+  let s = createGame('1v1', ['H9'], ['L2']);
+  const avail = [6, 14, 22, 32, 42, 52];
+  for (let i = 0; i < 6; i++) s = playRound(s, { A0: planSave('A0', avail[i]) }).state;
+  const a = s.teams.A[0];
+  eq(a.alive, true, '不屈触发');
+  eq(a.hp, 60, '不屈 HP=60');
+  eq(a.form, 'f1', '回形态一');
+  eq(a.unbrokenUsed, true, '每场限一次');
+  eq(s.history.length, 6);
+});
+test('M2 H9 埃蒙: 中途形态属性（R2 形态二 / R4 形态三）', () => {
+  let s = createGame('1v1', ['H9'], ['L2']);
+  const avail = [6, 14, 22, 32];
+  const hp = [50, 40, 30, 20];
+  for (let i = 0; i < 4; i++) {
+    s = playRound(s, { A0: planSave('A0', avail[i]) }).state;
+    const a = s.teams.A[0];
+    eq(a.hp, hp[i], `R${i + 1} 血量`);
+    if (i === 1) { eq(a.form, 'f2'); eq(a.atk, 2); eq(a.income, 8); }
+    if (i === 3) { eq(a.form, 'f3'); eq(a.atk, 3); eq(a.income, 10); eq(a.maxHp, 20); }
+  }
+});
+
+test('M2 H10 复制者: 复制当前形态属性与技能（⚑R14）', () => {
+  const g = createGame('1v1', ['H10'], ['L2'], { replicas: [{ unit: 'A0', target: 'B0' }] });
+  const a = g.teams.A[0];
+  eq(a.atk, 3); eq(a.hp, 30); eq(a.maxHp, 30); eq(a.income, 6);
+  assert(a.skills.includes('execute') && a.skills.includes('selfdestruct'), '获得目标技能 + 保留自爆');
+  assert(!a.skills.includes('copy'), '不再含复制');
+  eq(a.copiedFrom, 'L2');
+  assert(a.name.includes('复制'));
+});
+
+test('M2 H10 自爆: 攻点 ×2、反噬等量无视防御盾（⚑R10）', () => {
+  const g = createGame('1v1', ['H10'], ['L2'], { replicas: [{ unit: 'A0', target: 'B0' }] });
+  const { state: s } = beginRound(g);
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 4, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'selfdestruct' }] }, B0: planDef('B0', 6) });
+  eq(r.state.teams.B[0].hp, 30 - 6, '攻 4×2=8，防 6 抵 6，伤 (8−6)×3=6');
+  eq(r.state.teams.A[0].hp, 30 - 6, '反噬 6（无视防御与盾）');
+  const r2v = validatePlan(beginRound(r.state).state, 'A', { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'selfdestruct' }] } });
+  eq(r2v.ok, true, '自爆无冷却，次回合可再宣告');
+});
+
+/* ============ M2：数值型主动 ============ */
+
+test('M2 L1 三位一体: 攻形态 攻点×2', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L1'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', formChoice: undefined, attack: { points: 2, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'trinity', form: 'atk' }] } });
+  eq(r.state.teams.B[0].hp, 30 - 24, '攻 2×2=4 × 攻击力6 = 24');
+  eq(r.state.teams.A[0].form, 'atk', '形态持久切换');
+});
+
+test('M2 L1 三位一体: 防形态 防点×4', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L1'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: null, defend: 2, save: 0, skills: [{ id: 'trinity', form: 'def' }] }, B0: planAtk('B0', 6, 'A0') });
+  eq(r.state.teams.A[0].hp, 30, '池 2×4=8 全抵 6 点攻击');
+});
+
+test('M2 L1 三位一体: 存形态 存入×2 + 冷却2 窗口', () => {
+  const r1 = resolveRound(beginRound(createGame('1v1', ['L1'], ['L2'])).state,
+    { A0: { unitUid: 'A0', attack: null, defend: 0, save: 2, skills: [{ id: 'trinity', form: 'sav' }] } });
+  eq(r1.state.teams.A[0].bank, 4, '存 2 实存 4');
+  const s2 = beginRound(r1.state).state;
+  const v2 = validatePlan(s2, 'A', { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'trinity', form: 'atk' }] } });
+  eq(v2.ok, false, '冷却第 1 回合不可用');
+  const s4 = beginRound(beginRound(s2).state).state;
+  const v4 = validatePlan(s4, 'A', { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'trinity', form: 'atk' }] } });
+  eq(v4.ok, true, '冷却 2 回合后恢复');
+});
+
+test('M2 L2 圣堂武士: 处决 round(最大生命×50%) 不吃防御盾（⚑R11）', () => {
+  let s = playRound(createGame('1v1', ['L2'], ['L2']), { A0: planSave('A0', 6), B0: planSave('B0', 6) }).state;
+  const r = resolveRound(beginRound(s).state, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'execute', targetUid: 'B0' }] }, B0: planDef('B0', 6) });
+  eq(r.state.teams.B[0].hp, 15, '30 → 失去 15（防御无效）');
+});
+
+test('M2 L3 塔萨达尔: 聚合攻击姿态 全体敌方', () => {
+  const { state: s } = beginRound(createGame('2v2', ['L3', 'L2'], ['L2', 'L10']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', aggStance: 'aggAtk', attack: { points: 6, targetUid: 'B0' }, defend: 0, save: 0, skills: [] } });
+  eq(r.state.teams.B[0].hp, 18, '6×2=12');
+  eq(r.state.teams.B[1].hp, 16, 'B1 为 L10 血 28');
+  eq(r.state.teams.A[1].hp, 30, '仅敌方');
+  eq(r.events.filter(e => e.type === 'attack').length, 2);
+});
+
+test('M2 L3 塔萨达尔: 聚合姿态跨回合持久，可随时切换', () => {
+  // R1 激活聚合攻击
+  const r1 = resolveRound(beginRound(createGame('2v2', ['L3', 'L2'], ['L2', 'L10'])).state,
+    { A0: { unitUid: 'A0', aggStance: 'aggAtk', attack: { points: 6, targetUid: 'B0' }, defend: 0, save: 0, skills: [] } });
+  eq(r1.state.teams.A[0].stance, 'aggAtk', '姿态持久');
+  // R2 未提供 aggStance → 维持；空过回合攻击仍打全体
+  const r2 = resolveRound(beginRound(r1.state).state,
+    { A0: { unitUid: 'A0', attack: { points: 6, targetUid: 'B0' }, defend: 0, save: 0, skills: [] } });
+  eq(r2.state.teams.B[1].hp, 4, 'B1 再受 12（姿态仍生效）');
+  // R3 切回无姿态
+  const r3 = resolveRound(beginRound(r2.state).state,
+    { A0: { unitUid: 'A0', aggStance: null, attack: { points: 6, targetUid: 'B0' }, defend: 0, save: 0, skills: [] } });
+  eq(r3.state.teams.B[1].hp, 4, '仅声明目标受伤');
+  eq(r3.events.filter(e => e.type === 'attack').length, 1);
+});
+
+test('M2 L3 塔萨达尔: 聚合防御姿态 队友得 floor(X/2) 自己不获得', () => {
+  const { state: s } = beginRound(createGame('2v2', ['L3', 'L2'], ['L2', 'L10']));
+  const r = resolveRound(s, {
+    A0: { unitUid: 'A0', aggStance: 'aggDef', attack: null, defend: 6, save: 0, skills: [] },
+    B0: planAtk('B0', 4, 'A1'), B1: planAtk('B1', 4, 'A0'),
+  });
+  eq(r.state.teams.A[1].hp, 27, '池 0+3 抵 4 → 受 3');
+  eq(r.state.teams.A[0].hp, 16, '塔萨达尔满血（池 6 全抵 4 点攻），且不获赠予');
+});
+
+test('M2 L4 卡尔达里斯: 识破 A>B 生效', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L4'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 5, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'insight', targetUid: 'B0', a: 'atk', b: 'def' }] }, B0: planDef('B0', 3) });
+  eq(r.state.teams.B[0].hp, 20, '防归零 → (5−0)×2=10');
+});
+
+test('M2 L4 卡尔达里斯: 识破 A≤B 无效', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L4'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 2, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'insight', targetUid: 'B0', a: 'atk', b: 'def' }] }, B0: planDef('B0', 3) });
+  eq(r.state.teams.B[0].hp, 30, '2≤3 不生效 → (2−2)×2=0');
+});
+
+test('M2 L7 阿拉纳克: 攻防一体镜像赠予（⚑R17 裁定）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L7'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', formChoice: 'ad', attack: { points: 4, targetUid: 'B0' }, defend: 2, save: 0, skills: [] }, B0: planAtk('B0', 2, 'A0') });
+  eq(r.state.teams.B[0].hp, 18, '有效攻 4+2=6 ×2=12 伤');
+  eq(r.state.teams.A[0].hp, 16, '有效防 2+4=6 全抵 2 点攻');
+});
+
+test('M2 L7 阿拉纳克: 攻存一体 存入含赠予', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L7'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', formChoice: 'as', attack: { points: 4, targetUid: 'B0' }, defend: 0, save: 2, skills: [] } });
+  eq(r.state.teams.B[0].hp, 18, '有效攻 6 ×2=12');
+  eq(r.state.teams.A[0].bank, 6, '存 2 + 攻赠 4 = 6');
+});
+
+test('M2 L7 阿拉纳克: 防存一体', () => {
+  const { state: s } = beginRound(createGame('1v1', ['L7'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', formChoice: 'ds', attack: null, defend: 4, save: 2, skills: [] }, B0: planAtk('B0', 4, 'A0') });
+  eq(r.state.teams.A[0].hp, 16, '有效防 6 全抵 4 点攻');
+  eq(r.state.teams.A[0].bank, 6, '存 2 + 防赠 4');
+});
+
+test('M2 H1 泽拉图: 光刃 攻点>防点 → 防无效', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H1'], ['L2']));
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0'), B0: planDef('B0', 4) });
+  const atkEv = r.events.find(e => e.type === 'attack');
+  eq(atkEv.values.def, 0, '防点对本攻击无效');
+  eq(r.state.teams.B[0].hp, 12, '18 伤');
+});
+
+test('M2 H1 泽拉图: 光刃阈值相等不生效', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H1'], ['L2']));
+  const r = resolveRound(s, { A0: planAtk('A0', 4, 'B0'), B0: planDef('B0', 4) });
+  const atkEv = r.events.find(e => e.type === 'attack');
+  eq(atkEv.values.def, 4, '4>4 不成立，防正常抵扣');
+  eq(r.state.teams.B[0].hp, 30);
+});
+
+test('M2 H1 泽拉图: 闪避免疫攻击伤害', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H1'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 2, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'dodge' }] }, B0: planAtk('B0', 4, 'A0') });
+  eq(r.state.teams.A[0].hp, 24, '被攻击但闪避');
+  eq(r.state.teams.B[0].hp, 24, '泽拉图攻击照常');
+});
+
+test('M2 H2 雷诺: 势如破竹 常驻被动 自动瓦解收入最高目标（⚑R20）', () => {
+  // 无需宣告：R1 自动瓦解唯一敌方
+  const { state: s } = beginRound(createGame('1v1', ['H2'], ['L2']));
+  const r = resolveRound(s, {}); // 双方空计划
+  eq(r.state.teams.B[0].income, 4, '6−2，自动生效');
+  eq(r.state.teams.B[0].brokenDone, true);
+  // 次回合生效于收入
+  const s2 = beginRound(r.state).state;
+  eq(s2.teams.B[0].available, 4, '次回合收入 4');
+  // 已瓦解 → 不重复
+  const r3 = resolveRound(s2, {});
+  eq(r3.state.teams.B[0].income, 4, '同一目标整场仅一次');
+  assert(!r3.events.some(e => e.type === 'breakthrough'), '无重复瓦解事件');
+});
+
+test('M2 H2 雷诺: 势如破竹 优先收入最高目标且跳过狂暴单位', () => {
+  const g = createGame('3v3', ['H2', 'L2', 'L10'], ['H9', 'L2', 'L10']); // 敌方：埃蒙(6)/圣堂(6)/伏击者(6)
+  const { state: s } = beginRound(g);
+  const r = resolveRound(s, { B1: planAtk('B1', 1, 'A0') }); // B1 象征性行动
+  // 收入相同按槽位：B0 埃蒙被瓦解
+  const e0 = unitByUid(r.state, 'B0');
+  eq(e0.income, 4, '同收入取最前槽位');
+  eq(e0.brokenDone, true);
+});
+
+test('M2 H2 雷诺: 穿甲弹 本回合防御无效', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H2'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 4, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'pierce', targetUid: 'B0' }] }, B0: planDef('B0', 6) });
+  eq(r.state.teams.B[0].hp, 18, '防无效 → 4×3=12');
+});
+
+test('M2 H3 斯托科夫: 腐蚀两层 ×25%（⚑R21）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H3'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'corrode', targetUid: 'B0', count: 2 }] }, B0: { unitUid: 'B0', attack: { points: 5, targetUid: 'A0' }, defend: 4, save: 3, skills: [] } });
+  eq(r.state.teams.A[0].hp, 17, 'B 有效攻 floor(floor(5/2)/2)=1 → 3 伤');
+  const bAtk = r.events.filter(e => e.type === 'attack').find(e => e.src === 'B0');
+  eq(bAtk.values.points, 1);
+  const s2 = beginRound(r.state).state;
+  const v = validatePlan(s2, 'A', { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'corrode', targetUid: 'B0', count: 1 }] } });
+  eq(v.ok, false, '冷却1 跨回合限制');
+});
+
+test('M2 H3 斯托科夫: 烈焰两层 伤害×4（⚑R21）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H3'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 2, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'blaze', targetUid: 'B0', count: 2 }] } });
+  eq(r.state.teams.B[0].hp, 14, '(2×2)×4=16 伤');
+});
+
+test('M2 H4 幽灵: EMP 分配全无效点数照扣（⚑R6）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H4'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 4, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'emp', targetUid: 'B0' }] }, B0: { unitUid: 'B0', attack: { points: 5, targetUid: 'A0' }, defend: 3, save: 2, skills: [] } });
+  eq(r.events.filter(e => e.type === 'attack' && e.src === 'B0').length, 0, 'B 攻击归零无事件');
+  eq(r.state.teams.B[0].hp, 26, 'A 攻 4×1=4');
+  eq(r.state.teams.B[0].bank, 0, '存入被 EMP 归零');
+});
+
+test('M2 H4 幽灵: 电磁场盾吸收伤害', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H4'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 4, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'shieldField' }] }, B0: planAtk('B0', 6, 'A0') });
+  eq(r.state.teams.A[0].hp, 12, '盾 20 吸收 18');
+  const bAtk = r.events.filter(e => e.type === 'attack').find(e => e.src === 'B0');
+  eq(bAtk.values.shieldAbs, 18);
+});
+
+test('M2 H4 幽灵: 电浆束 攻击力+3 仅本回合（⚑R7）', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H4'], ['L2']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 4, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'plasma' }] } });
+  const atkEv = r.events.find(e => e.type === 'attack');
+  eq(atkEv.values.power, 4, '1+3');
+  eq(r.state.teams.B[0].hp, 14, '4×4=16');
+});
+
+test('M2 H6 德哈卡: 进化重置血量 → 退化截断+返还 6（⚑R12）', () => {
+  let s = createGame('1v1', ['H6'], ['L2']);
+  const r1 = resolveRound(beginRound(s).state, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'evolve' }] } });
+  let a = r1.state.teams.A[0];
+  eq(a.form, 'f2'); eq(a.hp, 30); eq(a.maxHp, 30); eq(a.income, 8);
+  const r2 = resolveRound(beginRound(r1.state).state, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'devolve' }] } });
+  a = r2.state.teams.A[0];
+  eq(a.form, 'f1'); eq(a.hp, 20, '血量截断 ≤20'); eq(a.maxHp, 20); eq(a.income, 6);
+  eq(a.bank, 6, '形态二退化返还 6');
+  const r3 = beginRound(r2.state);
+  eq(r3.state.teams.A[0].available, 12, '收入6 + 返还6');
+});
+
+test('M2 H6 德哈卡: 超进化进入形态三', () => {
+  let s = playRound(createGame('1v1', ['H6'], ['L2']), { A0: planSave('A0', 6) }).state;
+  const r = resolveRound(beginRound(s).state, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'superEvolve' }] } });
+  const a = r.state.teams.A[0];
+  eq(a.form, 'f3'); eq(a.hp, 40); eq(a.maxHp, 40); eq(a.atk, 5); eq(a.income, 10);
+});
+
+test('M2 H7 奥丁: 麻痹下限 0', () => {
+  const { state: s } = beginRound(createGame('1v1', ['H7'], ['L4']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', attack: { points: 5, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'paraRay', targetUid: 'B0' }] }, B0: planAtk('B0', 5, 'A0') });
+  const bAtk = r.events.filter(e => e.type === 'attack').find(e => e.src === 'B0');
+  eq(bAtk.values.power, 0, '攻 2−2 → 下限 0');
+  eq(bAtk.values.dmg, 0);
+  eq(r.state.teams.A[0].hp, 20, '不受伤害');
+  eq(r.state.teams.B[0].hp, 9, '奥丁 5×3=15');
+});
+
+/* ============ M2：跨角色交互（3 条） ============ */
+
+test('M2 交互: 束缚 vs EMP —— 被束缚单位技能失效且冷却照进（裁定）', () => {
+  const { state: s } = beginRound(createGame('2v2', ['H7', 'H4'], ['H4', 'L2']));
+  const r = resolveRound(s, {
+    A0: { unitUid: 'A0', attack: { points: 2, targetUid: 'B0' }, defend: 0, save: 0, skills: [{ id: 'bindRay', targetUid: 'B0' }] },
+    A1: { unitUid: 'A1', attack: null, defend: 0, save: 0, skills: [{ id: 'emp', targetUid: 'B0' }] },
+    B0: { unitUid: 'B0', attack: { points: 2, targetUid: 'A0' }, defend: 0, save: 0, skills: [{ id: 'dodge' }] },
+  });
+  assert(r.events.some(e => e.type === 'skillFail' && e.values.skill === 'dodge'), '闪避被束缚失效');
+  eq(r.state.teams.B[0].hp, 6, '闪避失效 → A0 攻 2×3=6');
+  eq(r.state.teams.A[0].hp, 20, 'B0 攻击被 EMP 归零');
+  eq(r.state.teams.B[0].cooldowns.dodge, 2, '失效技能冷却照进（1+1）');
+});
+
+test('M2 交互: 迷乱 vs 聚合 —— 迷乱优先全场（⚑R13）', () => {
+  const { state: s } = beginRound(createGame('2v2', ['L3', 'L9'], ['L2', 'L10']));
+  const r = resolveRound(s, { A0: { unitUid: 'A0', aggStance: 'aggAtk', attack: { points: 4, targetUid: 'B0' }, defend: 0, save: 0, skills: [] } });
+  eq(r.events.filter(e => e.type === 'attack').length, 4, '迷乱全场覆盖聚合敌方');
+  eq(r.state.teams.A[0].hp, 16 - 8, '含自己');
+  eq(r.state.teams.A[1].hp, 24 - 8, '含队友');
+  eq(r.state.teams.B[0].hp, 22); eq(r.state.teams.B[1].hp, 20, 'B1 为 L10 血 28');
+});
+
+test('M2 交互: 复制断牙 —— 复制者获得狂暴并免疫敌方技能（⚑R14/R16）', () => {
+  const g = createGame('2v2', ['H10', 'H4'], ['L5', 'L2'], { replicas: [{ unit: 'A0', target: 'B0' }] });
+  assert(g.teams.A[0].skills.includes('berserk'), '复制获得狂暴');
+  const { state: s } = beginRound(g);
+  const r = resolveRound(s, {
+    A0: planAtk('A0', 5, 'B0'),
+    B1: { unitUid: 'B1', attack: null, defend: 0, save: 0, skills: [{ id: 'emp', targetUid: 'A0' }] },
+  });
+  assert(r.events.some(e => e.phase === 'S1' && e.type === 'immune'), '复制断牙免疫 EMP');
+  eq(r.state.teams.B[0].hp, 32 - 15, '攻击不受影响');
+});
+
+/* ============ M3：团队模式（3v3 专项） ============ */
+// 同队去重：3v3 用 L2(3/30/6) + L10(3/28/6) + L7(2/16/6，不选形态即无联动)
+function team33() { return createGame('3v3', ['L2', 'L10', 'L7'], ['L2', 'L10', 'L7']); }
+
+test('M3 3v3: 集火双攻击按序消耗单防御池', () => {
+  const { state: s } = beginRound(team33());
+  const r = resolveRound(s, { A0: planAtk('A0', 4, 'B0'), A1: planAtk('A1', 3, 'B0'), B0: planDef('B0', 6) });
+  const evs = r.events.filter(e => e.type === 'attack');
+  eq(evs.length, 2);
+  eq(evs[0].values, { points: 4, def: 4, power: 3, dmg: 0, shieldAbs: 0, countered: false }, '4 点先耗 4');
+  eq(evs[1].values, { points: 3, def: 2, power: 3, dmg: 3, shieldAbs: 0, countered: false }, '3 点再耗剩 2');
+  eq(r.state.teams.B[0].hp, 27);
+});
+
+test('M3 3v3: 迷乱全场 6 单位全部受伤', () => {
+  const g = createGame('3v3', ['L9', 'L10', 'L7'], ['L2', 'L10', 'L7']); // A0 = 战争使者
+  const { state: s } = beginRound(g);
+  const r = resolveRound(s, { A0: planAtk('A0', 2, 'B0') });
+  eq(r.events.filter(e => e.type === 'attack').length, 6, '目标集 = 全场 6 单位');
+  eq(r.state.teams.A[0].hp, 24 - 6); eq(r.state.teams.A[1].hp, 28 - 6); eq(r.state.teams.A[2].hp, 16 - 6);
+  eq(r.state.teams.B[0].hp, 30 - 6); eq(r.state.teams.B[1].hp, 28 - 6); eq(r.state.teams.B[2].hp, 16 - 6);
+});
+
+test('M3 3v3: 聚合攻击全体敌方各结算一次', () => {
+  const g = createGame('3v3', ['L3', 'L10', 'L7'], ['L2', 'L10', 'L7']); // A0 = 塔萨达尔（攻 2）
+  const { state: s } = beginRound(g);
+  const r = resolveRound(s, { A0: { unitUid: 'A0', aggStance: 'aggAtk', attack: { points: 6, targetUid: 'B0' }, defend: 0, save: 0, skills: [] } });
+  eq(r.state.teams.B[0].hp, 30 - 12);
+  eq(r.state.teams.B[1].hp, 28 - 12);
+  eq(r.state.teams.B[2].hp, 16 - 12, 'B2 为 L7 血 16');
+  eq(r.state.teams.A[1].hp, 28, '队友不受影响');
+});
+
+test('M3 3v3: 连锁电击溅射 floor(主目标伤害/2) 到其余敌方', () => {
+  const g = createGame('3v3', ['H7', 'L2', 'L10'], ['L2', 'L10', 'L7']);
+  const { state: s } = beginRound(g);
+  const r = resolveRound(s, { A0: planAtk('A0', 6, 'B0') });
+  eq(r.state.teams.B[0].hp, 30 - 18, '主目标 18');
+  eq(r.state.teams.B[1].hp, 28 - 9, '溅射 9');
+  eq(r.state.teams.B[2].hp, 16 - 9, '溅射 9（L7 血 16 剩 7）');
+});
+
+/* ============ M5：AI 对手（§13.9 五类测试） ============ */
+function mulberry32(seed) { // 固定种子 rng（可复现）
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function aiDoubleRound(state, difficulty, rng) { // 双 AI 一回合；返回 { state, plans }
+  state = beginRound(state, { silent: true }).state;
+  state.aiPlayer = 'A';
+  const pa = planWithAI(state, difficulty, rng);
+  state.aiPlayer = 'B';
+  const pb = planWithAI(state, difficulty, rng);
+  const va = validatePlan(state, 'A', pa);
+  const vb = validatePlan(state, 'B', pb);
+  const r = resolveRound(state, { ...pa, ...pb }, { silent: true });
+  return { state: r.state, plans: { pa, pb }, va, vb };
+}
+function aiFuzzSetup(a, b) { // 复制者组合自动给复制目标；双双复制者跳过（返回 null）
+  const opts = { aiPlayer: 'B' };
+  if (a === 'H10' && b === 'H10') return null; // 复制者不能互copy，整场无解，跳过
+  if (a === 'H10') opts.replicas = [{ unit: 'A0', target: 'B0' }];
+  if (b === 'H10') opts.replicas = [{ unit: 'B0', target: 'A0' }];
+  return createGame('1v1', [a], [b], opts);
+}
+
+test('M5 AI: 难度参数表与 §13.6 一致', () => {
+  eq(AI_PARAMS.easy, { lambda: 0.5, temperature: 0.35, noise: true, counterShortcutChance: 0.30, historyBlend: 0 });
+  eq(AI_PARAMS.normal, { lambda: 0.8, temperature: 0.15, noise: false, counterShortcutChance: 0, historyBlend: 0 });
+  eq(AI_PARAMS.hard, { lambda: 0.95, temperature: 0.05, noise: false, counterShortcutChance: 0, historyBlend: 0.4 });
+});
+
+test('M5 AI: 可复现 —— 同 state+难度+种子 → 相同 plan（字节级）', () => {
+  const mk = () => beginRound(createGame('1v1', ['L2'], ['H4'], { aiPlayer: 'B' }), { silent: true }).state;
+  const p1 = planWithAI(mk(), 'hard', mulberry32(42));
+  const p2 = planWithAI(mk(), 'hard', mulberry32(42));
+  eq(JSON.stringify(p1), JSON.stringify(p2), '字节级一致');
+  const e1 = planWithAI(mk(), 'easy', mulberry32(42));
+  const e2 = planWithAI(mk(), 'easy', mulberry32(42));
+  eq(JSON.stringify(e1), JSON.stringify(e2), 'easy 含噪声也须同种子同输出');
+});
+
+test('M5 AI: 合法性 fuzz —— 20×20 镜像 × 3 难度 × ≤30 回合（固定种子）', () => {
+  const ids = Object.keys(CHARACTERS);
+  let games = 0, plansChecked = 0, rounds = 0;
+  for (const difficulty of ['easy', 'normal', 'hard']) {
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = 0; j < ids.length; j++) {
+        const setup = aiFuzzSetup(ids[i], ids[j]);
+        if (!setup) continue;
+        let state = setup;
+        const rng = mulberry32(i * 131 + j * 17 + 5);
+        games++;
+        for (let rd = 0; rd < 30 && !state.winner; rd++) {
+          const { state: ns, va, vb } = aiDoubleRound(state, difficulty, rng);
+          eq(va.ok, true, `${ids[i]}vs${ids[j]}/${difficulty} A 计划非法: ${va.errors.join('；')}`);
+          eq(vb.ok, true, `${ids[i]}vs${ids[j]}/${difficulty} B 计划非法: ${vb.errors.join('；')}`);
+          plansChecked += 2;
+          for (const u of [...ns.teams.A, ...ns.teams.B]) {
+            assert(Number.isFinite(u.hp) && Number.isFinite(u.available) && Number.isFinite(u.bank), '出现 NaN 状态');
+          }
+          state = ns;
+          rounds++;
+        }
+      }
+    }
+  }
+  assert(games >= 398, '镜像组合数不足');
+  console.log(`[fuzz] ${games} 局 / ${rounds} 回合 / ${plansChecked} 份计划全部合法`);
+});
+
+test('M5 AI: 强度 sanity —— hard vs 永远全押攻 / 永远全押存 ≥ 9/10', () => {
+  // 对局设计说明：L2 镜像 vs 全押攻 bot 时双方收入相同，AI 每轮净血量收益 ≤0，数学上最多平局；
+  // 故攻 bot 选用收入更低的 L8(SCV 4/轮)，体现「AI 惩罚固定策略」的测试本意。
+  const play = (botChar, botFn) => {
+    let wins = 0;
+    for (let g = 0; g < 10; g++) {
+      let state = createGame('1v1', [botChar], ['L2'], { aiPlayer: 'B' });
+      const rng = mulberry32(9000 + g * 13);
+      let guard = 0;
+      while (!state.winner && guard++ < 100) {
+        state = beginRound(state, { silent: true }).state;
+        const bot = botFn(state);
+        state.aiPlayer = 'B';
+        const ai = planWithAI(state, 'hard', rng);
+        state = resolveRound(state, { ...bot, ...ai }, { silent: true }).state;
+      }
+      if (state.winner === 'B') wins++;
+    }
+    return wins;
+  };
+  const vsAtk = play('L8', s => ({ A0: planAtk('A0', s.teams.A[0].available, 'B0') }));
+  const vsSave = play('L2', s => ({ A0: planSave('A0', s.teams.A[0].available) }));
+  console.log(`[强度] hard vs 全押攻(SCV) ${vsAtk}/10，vs 全押存 ${vsSave}/10`);
+  assert(vsAtk >= 9, 'hard vs 全押攻 胜率不足');
+  assert(vsSave >= 9, 'hard vs 全押存 胜率不足');
+});
+
+test('M5 AI: hard vs hard 30 回合正常结束或达上限无崩溃', () => {
+  let state = aiFuzzSetup('L2', 'H7');
+  const rng = mulberry32(31415);
+  let rd = 0;
+  while (!state.winner && rd < 30) { state = aiDoubleRound(state, 'hard', rng).state; rd++; }
+  assert(rd <= 30, '回合数异常');
+  assert(state.winner === 'draw' || state.winner === 'A' || state.winner === 'B' || state.round >= 30, '终局状态非法');
+});
+
+test('M5 AI: 性能 —— 1v1 规模单回合决策 < 100ms', () => {
+  const s = beginRound(createGame('1v1', ['H4'], ['H7'], { aiPlayer: 'B' }), { silent: true }).state;
+  for (const diff of ['easy', 'normal', 'hard']) {
+    const t0 = Date.now();
+    for (let i = 0; i < 10; i++) planWithAI(s, diff, mulberry32(i));
+    const avg = (Date.now() - t0) / 10;
+    assert(avg < 100, `${diff} 平均 ${avg}ms 超限`);
+    console.log(`[性能] ${diff} 单次决策平均 ${avg.toFixed(2)}ms`);
+  }
+});
+
+test('M2 H5 凯瑞甘: 大招 未受伤命中 / 受伤落空 / 宣告者死亡作废（⚑R23/R2）', () => {
+  // (a) 未受伤 → 命中 −24
+  const { state: s1 } = beginRound(createGame('1v1', ['H5'], ['L2']));
+  const r1 = resolveRound(s1, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'ult', targetUid: 'B0' }] } });
+  eq(r1.state.teams.B[0].hp, 6, '30−24');
+  // (b) 本回合受过伤害 → 落空
+  const { state: s2 } = beginRound(createGame('1v1', ['H5'], ['L2']));
+  const r2 = resolveRound(s2, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'ult', targetUid: 'B0' }] }, B0: planAtk('B0', 3, 'A0') });
+  eq(r2.state.teams.B[0].hp, 30, '大招落空');
+  assert(r2.events.some(e => e.type === 'ultFail'));
+  // (c) 宣告者死亡 → 作废
+  const { state: s3 } = beginRound(createGame('1v1', ['H5'], ['L2']));
+  s3.teams.A[0].hp = 5;
+  const r3 = resolveRound(s3, { A0: { unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'ult', targetUid: 'B0' }] }, B0: planAtk('B0', 6, 'A0') });
+  eq(r3.state.teams.A[0].alive, false);
+  eq(r3.state.teams.B[0].hp, 30, '作废不扣血');
+  assert(r3.events.some(e => e.type === 'ultVoid'));
+});
+
+test('M2 L5 断牙: 狂暴免疫队友增益（⚑R16 敌我均无效）', () => {
+  const g = createGame('2v2', ['L5', 'L3'], ['L2', 'L10']); // A0 断牙 + A1 塔萨达尔
+  const { state: s } = beginRound(g);
+  const r = resolveRound(s, { A1: { unitUid: 'A1', aggStance: 'aggDef', attack: null, defend: 6, save: 0, skills: [] }, B0: planAtk('B0', 4, 'A0') });
+  assert(r.events.some(e => e.type === 'immune' && e.dst === 'A0'), '断牙拒绝聚合防御赠予');
+  eq(r.state.teams.A[0].hp, 32 - 12, '断牙(血32)无赠予防御 → 4×3=12 伤');
+});
+
+test('M2 无冷却回归: 识破无冷却 —— 连续每回合可宣告，不登记冷却', () => {
+  const decl = () => ({ unitUid: 'A0', attack: null, defend: 0, save: 0, skills: [{ id: 'insight', targetUid: 'B0', a: 'atk', b: 'def' }] });
+  let s = resolveRound(beginRound(createGame('1v1', ['L4'], ['L2'])).state, { A0: decl() }).state;
+  eq(s.teams.A[0].cooldowns.insight, undefined, '不登记冷却');
+  for (let i = 0; i < 3; i++) {
+    s = beginRound(s).state;
+    eq(validatePlan(s, 'A', { A0: decl() }).ok, true, `R${i + 2} 仍可宣告`);
+    s = resolveRound(s, { A0: decl() }).state;
+  }
+  eq(s.teams.A[0].cooldowns.insight, undefined, '连续使用无冷却累积');
+});
+
+/* ============ 浏览器引导：?test=1 渲染清单页 ============ */
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!location.search.includes('test=1')) return;
+    const res = runAllTests();
+    const root = document.getElementById('app');
+    root.innerHTML = '<div id="test-root"><h1>星际争霸 III · 自测框架</h1>' +
+      `<div class="summary">${res.total} 用例，${res.passed} 通过` +
+      (res.failed ? `，<span style="color:#ff6b7a">${res.failed} 失败</span>` : '，全部通过 ✅') +
+      `（耗时 ${res.results.reduce((a, r) => a + r.ms, 0)}ms）</div>` +
+      res.results.map(r => `<div class="case ${r.ok ? 'pass' : 'fail'}">${r.ok ? '✔' : '✘'} ${r.name}` +
+        (r.ok ? '' : `<span class="err">${r.error}</span>`) + `</div>`).join('') +
+      '</div>';
+    console.log('[TEST]', res.total + ' 用例', res.passed + ' 通过', res.failed + ' 失败');
+    for (const r of res.results) console.log((r.ok ? 'PASS' : 'FAIL') + ' | ' + r.name + (r.ok ? '' : ' | ' + r.error));
+  });
+}
+</script>
+</body>
+</html>

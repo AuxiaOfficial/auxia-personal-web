@@ -1,0 +1,106 @@
+/* ==========================================================================
+   variables.css —— 全站唯一的样式来源
+   基调色：由「页面所属色系桶」固定（刷新不变）
+   accent：由当页背景插画的主色在运行时注入（--accent / --accent-rgb）
+   ========================================================================== */
+
+:root {
+  /* ---- 排版 ---- */
+  --font-title: "Smiley Sans Oblique", "Smiley Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* 开屏专用的展示体：站酷小薇 LOGO 体。只子集了开屏那两行字（4MB -> 6KB），
+     所以**只能**用在开屏标题上 —— 拿它写别的内容会大片掉字。
+     末尾挂 --font-title 是为了字体没加载完时不至于掉进系统默认衬线体。 */
+  --font-logo: "ZhanKuXiaoWei-auxia", var(--font-title);
+  --font-body: "SourceHanSansCN-auxia", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  /* 等宽栈里显式挂上正文字体：拉丁字符/数字走等宽，中日韩字符则落到
+     思源黑体子集上。不挂的话，中文会掉进系统默认字体，和正文不是一套。 */
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, var(--font-body), monospace;
+
+  /* ---- 尺度 ----
+     圆角刻意收得很锐。三个档位：卡片 / 卡内小件 / 胶囊件。
+     所有圆角都必须从这三档里取，不要在组件里写死像素值。 */
+  --wrap: 1200px;
+  --radius: 8px;         /* 卡片、图块 */
+  --radius-sm: 4px;      /* 缩略图、进度条、卡内小件 */
+  --radius-pill: 10px;   /* 按钮、导航项、标签 —— 原本是 999px 的胶囊 */
+  --nav-h: 68px;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+
+  /* 字号阶梯：全站只从这五档里取值，避免各处越改越散。
+     ratio ≈ 1.18，正文 17.5px 起，比默认 16px 明显大一档。 */
+  --fs-xs:  13.5px;   /* 角标 / 署名 */
+  --fs-sm:  15px;     /* 辅助信息 / 计数 */
+  --fs-md:  17.5px;   /* 正文 */
+  --fs-lg:  20px;     /* 卡片标题 */
+  --fs-xl:  24px;     /* 区块小标题 */
+
+  /* ---- 中性色（浅色底，五桶共用；分桶只改「纸」的色温） ---- */
+  --ink:   #2a2724;
+  --ink-2: #6c645d;
+  --ink-3: #a79e96;
+  --line:  rgba(42, 39, 36, .10);
+  --line-2: rgba(42, 39, 36, .06);
+
+  /* ---- 兜底 accent（JS 未注入时的暖橙） ---- */
+  --accent: #e8845c;
+  --accent-rgb: 232, 132, 92;
+
+  /* ---- 氛围层强度 ---- */
+  --bg-blur: 9px;          /* 背景插画轻度模糊 */
+  --bg-veil: .6;           /* 白纱总强度：唯一的调节旋钮（见 site.css 的 #bg .veil） */
+  /* 弹幕要「有存在感但不抢戏」。改成每秒 3 条的密度之后，单条的透明度必须
+     再压低一档：密度上去 + 药丸底去掉之后，0.45 会糊成一层灰网。
+     0.30 是「看得出来在飘、但不会盖住正文」的位置。 */
+  --danmaku-opacity: .30;
+}
+
+/* ====================== 五桶：每页固定一支 ====================== */
+[data-bucket="warm"] {                      /* 暖橙 · 主页 */
+  --paper:  #fdf8f2;
+  --paper-2:#ffffff;
+  --base:   #e8845c;
+  --base-2: #f0a878;
+  --sheen:  #ffe6d2;
+}
+[data-bucket="pink"] {                      /* 粉紫 · 动漫墙 */
+  --paper:  #fdf7fb;
+  --paper-2:#ffffff;
+  --base:   #dd7aad;
+  --base-2: #f0a8cd;
+  --sheen:  #ffe1f0;
+}
+[data-bucket="aqua"] {                      /* 冷青 · 游戏墙 / 展墙总页 */
+  --paper:  #f4fbfa;
+  --paper-2:#ffffff;
+  --base:   #3fb4a8;
+  --base-2: #7ad4c9;
+  --sheen:  #d6f5f0;
+}
+[data-bucket="cream"] {                     /* 米白 · 书籍墙 */
+  --paper:  #fdfaf2;
+  --paper-2:#fffdf9;
+  --base:   #b8934f;
+  --base-2: #d9b978;
+  --sheen:  #f7ecd4;
+}
+[data-bucket="mist"] {                      /* 灰蓝 · 项目页 / 404 */
+  --paper:  #f5f8fc;
+  --paper-2:#ffffff;
+  --base:   #6b8cc6;
+  --base-2: #9db6e0;
+  --sheen:  #e2ebfa;
+}
+
+/* 系统开启「减少动态效果」时，关掉一切非必要动效 */
+@media (prefers-reduced-motion: reduce) {
+  :root { --danmaku-opacity: 0; }
+}
+
+/* 暗色偏好：仍保持「明亮的日系」基调，只做轻微降温与降亮，不切成黑底 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:   #26231f;
+    --ink-2: #635c55;
+    --ink-3: #9c938b;
+  }
+}

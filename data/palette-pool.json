@@ -1,0 +1,198 @@
+{
+ "source": "local:random_illust",
+ "note": "站主自备插画，已压缩为同站 WebP；页面按色系桶随机取图，不再走外部接口",
+ "total": 10,
+ "all": [
+  {
+   "id": "0df9c7765c",
+   "src": "/assets/img/illust/0df9c7765c.webp",
+   "accent": "#9b2626",
+   "bucket": "pink",
+   "w": 1658,
+   "h": 2048
+  },
+  {
+   "id": "16ec592394",
+   "src": "/assets/img/illust/16ec592394.webp",
+   "accent": "#b87454",
+   "bucket": "pink",
+   "w": 1800,
+   "h": 1172
+  },
+  {
+   "id": "4d54a45eee",
+   "src": "/assets/img/illust/4d54a45eee.webp",
+   "accent": "#b85141",
+   "bucket": "pink",
+   "w": 1293,
+   "h": 1224
+  },
+  {
+   "id": "593638dc92",
+   "src": "/assets/img/illust/593638dc92.webp",
+   "accent": "#1c6460",
+   "bucket": "aqua",
+   "w": 1800,
+   "h": 1841
+  },
+  {
+   "id": "64668b3567",
+   "src": "/assets/img/illust/64668b3567.webp",
+   "accent": "#2e5c41",
+   "bucket": "aqua",
+   "w": 1800,
+   "h": 1127
+  },
+  {
+   "id": "9184a4b09e",
+   "src": "/assets/img/illust/9184a4b09e.webp",
+   "accent": "#572600",
+   "bucket": "warm",
+   "w": 1800,
+   "h": 1062
+  },
+  {
+   "id": "9a9a1fbb4c",
+   "src": "/assets/img/illust/9a9a1fbb4c.webp",
+   "accent": "#2f7db8",
+   "bucket": "mist",
+   "w": 1116,
+   "h": 1116
+  },
+  {
+   "id": "b2c5579535",
+   "src": "/assets/img/illust/b2c5579535.webp",
+   "accent": "#435f74",
+   "bucket": "mist",
+   "w": 1055,
+   "h": 1061
+  },
+  {
+   "id": "d2c119f6f9",
+   "src": "/assets/img/illust/d2c119f6f9.webp",
+   "accent": "#3c4157",
+   "bucket": "mist",
+   "w": 1500,
+   "h": 1203
+  },
+  {
+   "id": "f8201bbb79",
+   "src": "/assets/img/illust/f8201bbb79.webp",
+   "accent": "#0d5469",
+   "bucket": "aqua",
+   "w": 1800,
+   "h": 1350
+  }
+ ],
+ "buckets": {
+  "warm": {
+   "label": "暖橙",
+   "count": 1,
+   "items": [
+    {
+     "id": "9184a4b09e",
+     "src": "/assets/img/illust/9184a4b09e.webp",
+     "accent": "#572600",
+     "bucket": "warm",
+     "w": 1800,
+     "h": 1062
+    }
+   ]
+  },
+  "pink": {
+   "label": "粉紫",
+   "count": 3,
+   "items": [
+    {
+     "id": "0df9c7765c",
+     "src": "/assets/img/illust/0df9c7765c.webp",
+     "accent": "#9b2626",
+     "bucket": "pink",
+     "w": 1658,
+     "h": 2048
+    },
+    {
+     "id": "16ec592394",
+     "src": "/assets/img/illust/16ec592394.webp",
+     "accent": "#b87454",
+     "bucket": "pink",
+     "w": 1800,
+     "h": 1172
+    },
+    {
+     "id": "4d54a45eee",
+     "src": "/assets/img/illust/4d54a45eee.webp",
+     "accent": "#b85141",
+     "bucket": "pink",
+     "w": 1293,
+     "h": 1224
+    }
+   ]
+  },
+  "aqua": {
+   "label": "冷青",
+   "count": 3,
+   "items": [
+    {
+     "id": "593638dc92",
+     "src": "/assets/img/illust/593638dc92.webp",
+     "accent": "#1c6460",
+     "bucket": "aqua",
+     "w": 1800,
+     "h": 1841
+    },
+    {
+     "id": "64668b3567",
+     "src": "/assets/img/illust/64668b3567.webp",
+     "accent": "#2e5c41",
+     "bucket": "aqua",
+     "w": 1800,
+     "h": 1127
+    },
+    {
+     "id": "f8201bbb79",
+     "src": "/assets/img/illust/f8201bbb79.webp",
+     "accent": "#0d5469",
+     "bucket": "aqua",
+     "w": 1800,
+     "h": 1350
+    }
+   ]
+  },
+  "cream": {
+   "label": "米白",
+   "count": 0,
+   "items": []
+  },
+  "mist": {
+   "label": "灰蓝",
+   "count": 3,
+   "items": [
+    {
+     "id": "9a9a1fbb4c",
+     "src": "/assets/img/illust/9a9a1fbb4c.webp",
+     "accent": "#2f7db8",
+     "bucket": "mist",
+     "w": 1116,
+     "h": 1116
+    },
+    {
+     "id": "b2c5579535",
+     "src": "/assets/img/illust/b2c5579535.webp",
+     "accent": "#435f74",
+     "bucket": "mist",
+     "w": 1055,
+     "h": 1061
+    },
+    {
+     "id": "d2c119f6f9",
+     "src": "/assets/img/illust/d2c119f6f9.webp",
+     "accent": "#3c4157",
+     "bucket": "mist",
+     "w": 1500,
+     "h": 1203
+    }
+   ]
+  }
+ }
+}

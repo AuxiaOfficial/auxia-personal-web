@@ -1,0 +1,36 @@
+# ==========================================================================
+# Cloudflare Pages 响应头
+# 放置于站点根目录，Pages 会自动读取
+# ==========================================================================
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+# 图标 / 字体 / 图片：内容不变，长缓存
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/img/icons/*
+  Cache-Control: public, max-age=604800
+
+/assets/img/photos/*
+  Cache-Control: public, max-age=604800
+
+/assets/img/illust/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/img/posters/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/css/*
+  Cache-Control: public, max-age=86400
+
+/assets/js/*
+  Cache-Control: public, max-age=86400
+
+# 站点数据：更新频繁，允许缓存但必须回源校验
+/data/*
+  Cache-Control: public, max-age=300, must-revalidate

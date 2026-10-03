@@ -1,0 +1,40 @@
+# ---- 构建中间产物（会重新生成，不进仓库）----
+data/.poster-cache.json
+assets/fonts/.charset.txt
+dist/
+build/
+
+# ---- 真实联系方式（Base64 只是编码不是加密，绝不能提交）----
+# 恢复办法：把里面每项的 enc 填回 data/site.json 的 contact.items[].enc
+data/.contact-real.json
+
+# ---- 本机素材路径（含用户名，不进公开仓库）----
+# 解析顺序见 tools/common.py：环境变量 → 这个文件 → 项目同级目录
+tools/local.json
+
+# ---- 备份 / 草稿（只在本地留档，不该进公开仓库）----
+_backup/
+_backups/
+*.bak
+*.orig
+
+# ---- 凭据：任何情况下都不许进仓库 ----
+# CLOUDFLARE_API_TOKEN 之类只放在环境变量里（见 README「九、部署」的路 B）
+.env
+.env.*
+
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ---- Node（只为跑冒烟测试）----
+node_modules/
+package-lock.json
+
+# ---- 编辑器 / 系统 ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

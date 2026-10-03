@@ -1,0 +1,917 @@
+{
+ "source": "007 WALLS 展墙🖼️",
+ "excluded": [
+  ".obsidian",
+  ".trash",
+  "zzz摄影"
+ ],
+ "total": 64,
+ "walls": [
+  {
+   "id": "photo",
+   "name": "摄影作品展示",
+   "en": "Photography",
+   "bucket": "warm",
+   "kind": "image",
+   "count": 12,
+   "items": [
+    {
+     "id": "dsc04764",
+     "title": "DSC04764",
+     "thumb": "/assets/img/photos/thumb/dsc04764.webp",
+     "full": "/assets/img/photos/full/dsc04764.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "pink",
+     "accent": "#c17d6f",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc04961",
+     "title": "DSC04961",
+     "thumb": "/assets/img/photos/thumb/dsc04961.webp",
+     "full": "/assets/img/photos/full/dsc04961.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "warm",
+     "accent": "#927e72",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc05019",
+     "title": "DSC05019",
+     "thumb": "/assets/img/photos/thumb/dsc05019.webp",
+     "full": "/assets/img/photos/full/dsc05019.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "warm",
+     "accent": "#cea768",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc05026",
+     "title": "DSC05026",
+     "thumb": "/assets/img/photos/thumb/dsc05026.webp",
+     "full": "/assets/img/photos/full/dsc05026.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "mist",
+     "accent": "#305890",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc05027",
+     "title": "DSC05027",
+     "thumb": "/assets/img/photos/thumb/dsc05027.webp",
+     "full": "/assets/img/photos/full/dsc05027.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "mist",
+     "accent": "#25406e",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc05056",
+     "title": "DSC05056",
+     "thumb": "/assets/img/photos/thumb/dsc05056.webp",
+     "full": "/assets/img/photos/full/dsc05056.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "warm",
+     "accent": "#978c6b",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc05505",
+     "title": "DSC05505",
+     "thumb": "/assets/img/photos/thumb/dsc05505.webp",
+     "full": "/assets/img/photos/full/dsc05505.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "cream",
+     "accent": "#a3a49d",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc05572",
+     "title": "DSC05572",
+     "thumb": "/assets/img/photos/thumb/dsc05572.webp",
+     "full": "/assets/img/photos/full/dsc05572.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "warm",
+     "accent": "#c3948e",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc05880",
+     "title": "DSC05880",
+     "thumb": "/assets/img/photos/thumb/dsc05880.webp",
+     "full": "/assets/img/photos/full/dsc05880.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "aqua",
+     "accent": "#7cb959",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc06092",
+     "title": "DSC06092",
+     "thumb": "/assets/img/photos/thumb/dsc06092.webp",
+     "full": "/assets/img/photos/full/dsc06092.webp",
+     "w": 3672,
+     "h": 4896,
+     "bucket": "mist",
+     "accent": "#97a0b2",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc06110",
+     "title": "DSC06110",
+     "thumb": "/assets/img/photos/thumb/dsc06110.webp",
+     "full": "/assets/img/photos/full/dsc06110.webp",
+     "w": 3672,
+     "h": 4896,
+     "bucket": "warm",
+     "accent": "#a97b5f",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    },
+    {
+     "id": "dsc06145",
+     "title": "DSC06145",
+     "thumb": "/assets/img/photos/thumb/dsc06145.webp",
+     "full": "/assets/img/photos/full/dsc06145.webp",
+     "w": 4896,
+     "h": 3672,
+     "bucket": "mist",
+     "accent": "#476488",
+     "credit": {
+      "type": "self",
+      "name": "Auxia 自摄",
+      "url": ""
+     }
+    }
+   ]
+  },
+  {
+   "id": "anime",
+   "name": "动漫展墙",
+   "en": "Anime",
+   "bucket": "pink",
+   "kind": "title",
+   "count": 10,
+   "items": [
+    {
+     "id": "我推的孩子",
+     "title": "我推的孩子",
+     "poster": "/assets/img/posters/anime-我推的孩子.webp",
+     "posterW": 460,
+     "posterH": 651,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "【推しの子】",
+      "url": "https://anilist.co/anime/150672"
+     }
+    },
+    {
+     "id": "辉夜大小姐想让我告白",
+     "title": "辉夜大小姐想让我告白",
+     "poster": "/assets/img/posters/anime-辉夜大小姐想让我告白.webp",
+     "posterW": 460,
+     "posterH": 650,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "かぐや様は告らせたい-ウルトラロマンティック-",
+      "url": "https://anilist.co/anime/125367"
+     }
+    },
+    {
+     "id": "DEATH-NOTE",
+     "title": "DEATH NOTE",
+     "poster": "/assets/img/posters/anime-DEATH-NOTE.webp",
+     "posterW": 460,
+     "posterH": 651,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "DEATH NOTE",
+      "url": "https://anilist.co/anime/1535"
+     }
+    },
+    {
+     "id": "迷宫饭",
+     "title": "迷宫饭",
+     "poster": "/assets/img/posters/anime-迷宫饭.webp",
+     "posterW": 460,
+     "posterH": 654,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "ダンジョン飯",
+      "url": "https://anilist.co/manga/86082"
+     }
+    },
+    {
+     "id": "RE-0-从零开始的异世界生活",
+     "title": "RE 0 从零开始的异世界生活",
+     "poster": "/assets/img/posters/anime-RE-0-从零开始的异世界生活.webp",
+     "posterW": 460,
+     "posterH": 649,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "Re:ゼロから始める異世界生活",
+      "url": "https://anilist.co/manga/85737"
+     }
+    },
+    {
+     "id": "芙莉莲",
+     "title": "芙莉莲",
+     "poster": "/assets/img/posters/anime-芙莉莲.webp",
+     "posterW": 460,
+     "posterH": 649,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "葬送のフリーレン",
+      "url": "https://anilist.co/anime/154587"
+     }
+    },
+    {
+     "id": "进击的巨人",
+     "title": "进击的巨人",
+     "poster": "/assets/img/posters/anime-进击的巨人.webp",
+     "posterW": 460,
+     "posterH": 687,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "進撃の巨人",
+      "url": "https://anilist.co/manga/53390"
+     }
+    },
+    {
+     "id": "超时空辉夜姬",
+     "title": "超时空辉夜姬",
+     "poster": "/assets/img/posters/anime-超时空辉夜姬.webp",
+     "posterW": 460,
+     "posterH": 654,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "超かぐや姫！",
+      "url": "https://anilist.co/manga/206719"
+     }
+    },
+    {
+     "id": "命运石之门",
+     "title": "命运石之门",
+     "poster": "/assets/img/posters/anime-命运石之门.webp",
+     "posterW": 460,
+     "posterH": 656,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "シュタインズ・ゲート",
+      "url": "https://anilist.co/manga/47517"
+     }
+    },
+    {
+     "id": "石纪元",
+     "title": "石纪元",
+     "poster": "/assets/img/posters/anime-石纪元.webp",
+     "posterW": 230,
+     "posterH": 366,
+     "accent": "",
+     "credit": {
+      "type": "anilist",
+      "name": "Dr.STONE",
+      "url": "https://anilist.co/manga/98416"
+     }
+    }
+   ]
+  },
+  {
+   "id": "game",
+   "name": "游戏展墙",
+   "en": "Games",
+   "bucket": "aqua",
+   "kind": "title",
+   "count": 15,
+   "items": [
+    {
+     "id": "空洞骑士",
+     "title": "空洞骑士",
+     "poster": "/assets/img/posters/game-空洞骑士.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Hollow Knight",
+      "url": "https://store.steampowered.com/app/367520/"
+     }
+    },
+    {
+     "id": "奥日",
+     "title": "奥日",
+     "poster": "/assets/img/posters/game-奥日.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Ori and the Blind Forest: Definitive Edition",
+      "url": "https://store.steampowered.com/app/387290/"
+     }
+    },
+    {
+     "id": "黑暗之魂-3",
+     "title": "黑暗之魂 3",
+     "poster": "/assets/img/posters/game-黑暗之魂-3.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "DARK SOULS III",
+      "url": "https://store.steampowered.com/app/374320/"
+     }
+    },
+    {
+     "id": "只狼",
+     "title": "只狼",
+     "poster": "/assets/img/posters/game-只狼.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Sekiro: Shadows Die Twice",
+      "url": "https://store.steampowered.com/app/814380/"
+     }
+    },
+    {
+     "id": "蔚蓝",
+     "title": "蔚蓝",
+     "poster": "/assets/img/posters/game-蔚蓝.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Celeste",
+      "url": "https://store.steampowered.com/app/504230/"
+     }
+    },
+    {
+     "id": "kingdom-rush",
+     "title": "kingdom rush",
+     "poster": "/assets/img/posters/game-kingdom-rush.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Kingdom Rush",
+      "url": "https://store.steampowered.com/app/246420/"
+     }
+    },
+    {
+     "id": "底特律·变人",
+     "title": "《底特律·变人》",
+     "poster": "/assets/img/posters/game-底特律·变人.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Detroit: Become Human",
+      "url": "https://store.steampowered.com/app/1222140/"
+     }
+    },
+    {
+     "id": "传说之下",
+     "title": "传说之下",
+     "poster": "/assets/img/posters/game-传说之下.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Undertale",
+      "url": "https://store.steampowered.com/app/391540/"
+     }
+    },
+    {
+     "id": "传送门",
+     "title": "传送门",
+     "poster": "/assets/img/posters/game-传送门.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Portal 2",
+      "url": "https://store.steampowered.com/app/620/"
+     }
+    },
+    {
+     "id": "星际拓荒",
+     "title": "星际拓荒",
+     "poster": "/assets/img/posters/game-星际拓荒.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Outer Wilds",
+      "url": "https://store.steampowered.com/app/753640/"
+     }
+    },
+    {
+     "id": "邪恶铭刻",
+     "title": "邪恶铭刻",
+     "poster": "/assets/img/posters/game-邪恶铭刻.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Inscryption",
+      "url": "https://store.steampowered.com/app/1092790/"
+     }
+    },
+    {
+     "id": "超阈限空间",
+     "title": "超阈限空间",
+     "poster": "/assets/img/posters/game-超阈限空间.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Superliminal",
+      "url": "https://store.steampowered.com/app/1049410/"
+     }
+    },
+    {
+     "id": "noita",
+     "title": "noita",
+     "poster": "/assets/img/posters/game-noita.webp",
+     "posterW": 300,
+     "posterH": 450,
+     "accent": "",
+     "credit": {
+      "type": "steam",
+      "name": "Noita",
+      "url": "https://store.steampowered.com/app/881100/"
+     }
+    },
+    {
+     "id": "舞萌maimaiDX",
+     "title": "舞萌maimaiDX",
+     "poster": "/assets/img/posters/game-舞萌maimaiDX.webp",
+     "posterW": 536,
+     "posterH": 536,
+     "accent": "",
+     "credit": {
+      "type": "manual",
+      "name": "",
+      "url": ""
+     }
+    },
+    {
+     "id": "phigros",
+     "title": "phigros",
+     "poster": "/assets/img/posters/game-phigros.webp",
+     "posterW": 246,
+     "posterH": 246,
+     "accent": "",
+     "credit": {
+      "type": "manual",
+      "name": "",
+      "url": ""
+     }
+    }
+   ]
+  },
+  {
+   "id": "book",
+   "name": "书籍展墙",
+   "en": "Books",
+   "bucket": "cream",
+   "kind": "title",
+   "count": 3,
+   "items": [
+    {
+     "id": "悉达多",
+     "title": "悉达多",
+     "poster": "/assets/img/posters/book-悉达多.webp",
+     "posterW": 528,
+     "posterH": 720,
+     "accent": "",
+     "credit": {
+      "type": "douban",
+      "name": "[德] 赫尔曼·黑塞",
+      "url": "https://book.douban.com/subject/26980487/"
+     }
+    },
+    {
+     "id": "德米安",
+     "title": "德米安",
+     "poster": "/assets/img/posters/book-德米安.webp",
+     "posterW": 332,
+     "posterH": 500,
+     "accent": "",
+     "credit": {
+      "type": "douban",
+      "name": "[德] 赫尔曼·黑塞",
+      "url": "https://book.douban.com/subject/3578470/"
+     }
+    },
+    {
+     "id": "三体系列",
+     "title": "三体系列",
+     "poster": "/assets/img/posters/book-三体系列.webp",
+     "posterW": 350,
+     "posterH": 500,
+     "accent": "",
+     "credit": {
+      "type": "douban",
+      "name": "刘慈欣",
+      "url": "https://book.douban.com/subject/2567698/"
+     }
+    }
+   ]
+  },
+  {
+   "id": "music",
+   "name": "音乐展墙",
+   "en": "Music",
+   "bucket": "mist",
+   "kind": "title",
+   "count": 24,
+   "items": [
+    {
+     "id": "伪物",
+     "title": "伪物",
+     "poster": "/assets/img/posters/music-伪物.webp",
+     "posterW": 280,
+     "posterH": 157,
+     "accent": "",
+     "credit": {
+      "type": "manual",
+      "name": "",
+      "url": ""
+     }
+    },
+    {
+     "id": "匙之咒",
+     "title": "匙之咒",
+     "poster": "/assets/img/posters/music-匙之咒.webp",
+     "posterW": 280,
+     "posterH": 158,
+     "accent": "",
+     "credit": {
+      "type": "manual",
+      "name": "",
+      "url": ""
+     }
+    },
+    {
+     "id": "拼凑的断音",
+     "title": "拼凑的断音",
+     "poster": "/assets/img/posters/music-拼凑的断音.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "とあ · ツギハギスタッカート - Single",
+      "url": "https://music.apple.com/jp/album/%E3%83%84%E3%82%AE%E3%83%8F%E3%82%AE%E3%82%B9%E3%82%BF%E3%83%83%E3%82%AB%E3%83%BC%E3%83%88-feat-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF/910087637?i=910087652&uo=4"
+     }
+    },
+    {
+     "id": "像神一样呐",
+     "title": "像神一样呐",
+     "poster": "/assets/img/posters/music-像神一样呐.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "ピノキオピー · 神っぽいな - Single",
+      "url": "https://music.apple.com/jp/album/%E7%A5%9E%E3%81%A3%E3%81%BD%E3%81%84%E3%81%AA/1585950845?i=1585951058&uo=4"
+     }
+    },
+    {
+     "id": "妄想感伤代偿联盟",
+     "title": "妄想感伤代偿联盟",
+     "poster": "/assets/img/posters/music-妄想感伤代偿联盟.webp",
+     "posterW": 598,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "DECO*27 · GHOST",
+      "url": "https://music.apple.com/jp/album/%E5%A6%84%E6%83%B3%E6%84%9F%E5%82%B7%E4%BB%A3%E5%84%9F%E9%80%A3%E7%9B%9F/1147144714?i=1147145184&uo=4"
+     }
+    },
+    {
+     "id": "OTTAMA-GAZER",
+     "title": "OTTAMA GAZER",
+     "poster": "/assets/img/posters/music-OTTAMA-GAZER.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "MYUKKE. · OTTAMA GAZER - Single",
+      "url": "https://music.apple.com/jp/album/ottama-gazer/1583330011?i=1583330012&uo=4"
+     }
+    },
+    {
+     "id": "月詠に鳴る",
+     "title": "月詠に鳴る",
+     "poster": "/assets/img/posters/music-月詠に鳴る.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Feryquitous · CHUNITHM ALL JUSTICE COLLECTION episode Ⅲ 4",
+      "url": "https://music.apple.com/jp/album/%E6%9C%88%E8%A9%A0%E3%81%AB%E9%B3%B4%E3%82%8B-feat-%E8%97%8D%E6%9C%88%E3%81%AA%E3%81%8F%E3%82%8B/1634615446?i=1634616527&uo=4"
+     }
+    },
+    {
+     "id": "鸟之诗animenz钢琴版",
+     "title": "鸟之诗animenz钢琴版",
+     "poster": "/assets/img/posters/music-鸟之诗animenz钢琴版.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Lia & VISUAL ARTS / Key · Ornithopter -AIR Original Compilation-",
+      "url": "https://music.apple.com/jp/album/%E9%B3%A5%E3%81%AE%E8%A9%A9/1794684230?i=1794684234&uo=4"
+     }
+    },
+    {
+     "id": "全员同学会",
+     "title": "全员同学会",
+     "poster": "/assets/img/posters/music-全员同学会.webp",
+     "posterW": 280,
+     "posterH": 280,
+     "accent": "",
+     "credit": {
+      "type": "manual",
+      "name": "",
+      "url": ""
+     }
+    },
+    {
+     "id": "Bite-咬合力",
+     "title": "Bite 咬合力",
+     "poster": "/assets/img/posters/music-Bite-咬合力.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Sān-Z & HOYO-MiX · BITE! - Single",
+      "url": "https://music.apple.com/jp/album/bite/1755544923?i=1755545210&uo=4"
+     }
+    },
+    {
+     "id": "ReDreaming-Angel",
+     "title": "ReDreaming Angel",
+     "poster": "/assets/img/posters/music-ReDreaming-Angel.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Sān-Z & HOYO-MiX · ReDreaming Angel - Single",
+      "url": "https://music.apple.com/jp/album/redreaming-angel/1873247993?i=1873247997&uo=4"
+     }
+    },
+    {
+     "id": "原色",
+     "title": "原色",
+     "poster": "/assets/img/posters/music-原色.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Sān-Z & HOYO-MiX · スターズ・オブ・リラ+",
+      "url": "https://music.apple.com/jp/album/%E5%8E%9F%E8%89%B2/1882993346?i=1882993361&uo=4"
+     }
+    },
+    {
+     "id": "damidami",
+     "title": "damidami",
+     "poster": "/assets/img/posters/music-damidami.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Arakezuri · CAKE - EP",
+      "url": "https://music.apple.com/jp/album/%E3%83%80%E3%83%9F%E3%83%80%E3%83%9F/1751245487?i=1751245912&uo=4"
+     }
+    },
+    {
+     "id": "mycurse-,myfate",
+     "title": "mycurse ，myfate",
+     "poster": "/assets/img/posters/music-mycurse-,myfate.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Sān-Z & HOYO-MiX · My Curse, My Fate - Single",
+      "url": "https://music.apple.com/jp/album/my-curse-my-fate-instrumental/1813790986?i=1813790988&uo=4"
+     }
+    },
+    {
+     "id": "铁花飞",
+     "title": "铁花飞",
+     "poster": "/assets/img/posters/music-铁花飞.webp",
+     "posterW": 400,
+     "posterH": 400,
+     "accent": "",
+     "credit": {
+      "type": "manual",
+      "name": "",
+      "url": ""
+     }
+    },
+    {
+     "id": "所以我放弃了音乐",
+     "title": "所以我放弃了音乐",
+     "poster": "/assets/img/posters/music-所以我放弃了音乐.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "ヨルシカ · だから僕は音楽を辞めた",
+      "url": "https://music.apple.com/jp/album/%E3%81%A0%E3%81%8B%E3%82%89%E5%83%95%E3%81%AF%E9%9F%B3%E6%A5%BD%E3%82%92%E8%BE%9E%E3%82%81%E3%81%9F/1648876058?i=1648877323&uo=4"
+     }
+    },
+    {
+     "id": "雨和卡布奇诺",
+     "title": "雨和卡布奇诺",
+     "poster": "/assets/img/posters/music-雨和卡布奇诺.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "ヨルシカ · エルマ",
+      "url": "https://music.apple.com/jp/album/%E9%9B%A8%E3%81%A8%E3%82%AB%E3%83%97%E3%83%81%E3%83%BC%E3%83%8E/1474061924?i=1474062330&uo=4"
+     }
+    },
+    {
+     "id": "il-vento-d‘oro",
+     "title": "il vento d‘oro",
+     "poster": "/assets/img/posters/music-il-vento-d‘oro.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Fonzi M · Giorno's Theme: Il Vento D'oro (JoJo's Bizarre Adventure: Golden Wind) - Single",
+      "url": "https://music.apple.com/jp/album/giornos-theme-il-vento-doro-jojos-bizarre-adventure/1479672469?i=1479672470&uo=4"
+     }
+    },
+    {
+     "id": "缸",
+     "title": "缸",
+     "poster": "/assets/img/posters/music-缸.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "No Party For Cao Dong · 瓦合",
+      "url": "https://music.apple.com/jp/album/%E7%BC%B8/1679883738?i=1679883748&uo=4"
+     }
+    },
+    {
+     "id": "杀死那个石家庄人",
+     "title": "杀死那个石家庄人",
+     "poster": "/assets/img/posters/music-杀死那个石家庄人.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "万能青年旅店 · 万能青年旅店",
+      "url": "https://music.apple.com/jp/album/%E6%9D%80%E6%AD%BB%E9%82%A3%E4%B8%AA%E7%9F%B3%E5%AE%B6%E5%BA%84%E4%BA%BA/1538548871?i=1538548895&uo=4"
+     }
+    },
+    {
+     "id": "Out-of-Time-The-Weeknd",
+     "title": "Out of Time - The Weeknd",
+     "poster": "/assets/img/posters/music-Out-of-Time-The-Weeknd.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "ザ・ウィークエンド · Live At SoFi Stadium",
+      "url": "https://music.apple.com/jp/album/out-of-time-live/1674298155?i=1674298562&uo=4"
+     }
+    },
+    {
+     "id": "米兰的小铁匠",
+     "title": "米兰的小铁匠",
+     "poster": "/assets/img/posters/music-米兰的小铁匠.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Jay Chou · 八度空間",
+      "url": "https://music.apple.com/jp/album/%E7%B1%B3%E8%98%AD%E7%9A%84%E5%B0%8F%E9%90%B5%E5%8C%A0/1721459350?i=1721459516&uo=4"
+     }
+    },
+    {
+     "id": "暗号",
+     "title": "暗号",
+     "poster": "/assets/img/posters/music-暗号.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Jay Chou · 八度空間",
+      "url": "https://music.apple.com/jp/album/%E6%9A%97%E8%99%9F/1721459350?i=1721459355&uo=4"
+     }
+    },
+    {
+     "id": "夜的第七章",
+     "title": "夜的第七章",
+     "poster": "/assets/img/posters/music-夜的第七章.webp",
+     "posterW": 600,
+     "posterH": 600,
+     "accent": "",
+     "credit": {
+      "type": "itunes",
+      "name": "Jay Chou · 依然范特西",
+      "url": "https://music.apple.com/jp/album/%E5%A4%9C%E7%9A%84%E7%AC%AC%E4%B8%83%E7%AB%A0/1721453996?i=1721454007&uo=4"
+     }
+    }
+   ]
+  }
+ ]
+}
